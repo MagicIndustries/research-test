@@ -14,6 +14,7 @@ The single source of truth for how research experiments are filed, run, and comp
 ```
 experiments/<topic>/
   PROMPT.md                      ← canonical prompt, hypothesis, rubric, variant matrix
+  OBSERVATIONS.md                ← dated log, appended by every session (see below)
   runs/<variant>/
     RUN.md                       ← provenance (schema below)
     skill-snapshot/              ← byte-copies of every skill definition the run used
@@ -21,6 +22,10 @@ experiments/<topic>/
   comparisons/
     YYYY-MM-DD-<slug>.md
 ```
+
+## Observations log
+
+Every session that touches an experiment **appends** a dated entry to its `OBSERVATIONS.md`: anomalies, friction, hypothesis drift, cost surprises, judge quirks — anything noticed that the structured files don't capture. Entries are never rewritten, only appended. This log is the raw material the self-improvement loop will eventually mine; an unrecorded observation is lost to it.
 
 ## Variant naming grammar
 
