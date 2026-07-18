@@ -9,3 +9,11 @@ Dated log of anything noticed while working this experiment: anomalies, friction
 - **Verification asymmetry**: Spartan's explicit verify step surfaced source contradictions the baseline never looked for — Screenpipe's marketing (MIT, $400 lifetime) vs its own repo (source-available, $25/mo), an Obsidian announcement misdated by secondary sources, vendor-self-reported and mutually inconsistent Mem0/Zep benchmarks. The citation spot-check should test whether this depth survives blinding.
 - **Harness quirk**: both background agents had the Write tool denied for the run's `output/` path and fell back to shell heredocs (content unaffected). Worth understanding before it bites a run that can't fall back.
 - **Length gap**: 4,034 vs 3,170 words — verbosity bias is live in this comparison; judges must see lengths reported per protocol.
+
+## 2026-07-18 — first blind comparison (research vs spartan-deep-research)
+
+- **Verbosity bias did not decide it**: the *shorter* report won both passes — either the anti-volume instruction worked or the gap was real. Worth re-testing when a comparison has a bigger length spread.
+- **Order-swap earned its cost in nuance, not direction**: no dimension flipped between passes, but magnitudes moved (tie↔slightly, slightly↔strongly) on three of five dimensions. Two passes look worth keeping for calibration even when directions agree.
+- **The interesting result is dimensional, not overall**: baseline won on citation discipline and literal instruction-following; spartan won synthesis (conflicts, dissent, gaps) in both passes. A stacked variant (spartan's verify/synthesize + baseline's primary-source rule) is an obvious future experiment.
+- **Spot-check calibration**: judges' citation verdicts matched the live spot-check (baseline 5/6 clean vs spartan 4/6) — a small sign the blind judging tracks verifiable ground truth. All three PARTIALs were *attribution* errors (right number, wrong source), not fabrications; 0 UNSUPPORTED across 12 claims.
+- **Hypothesis outcome**: "deep research is better but costs more" — half-falsified. Cost was identical; quality differences were dimensional, not overall. PROMPT.md hypotheses should predict *dimensions*, not just winners.

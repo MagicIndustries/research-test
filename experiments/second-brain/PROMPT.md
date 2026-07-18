@@ -26,4 +26,4 @@ Default rubric (docs/agents/research-harness.md), no overrides.
 
 ## Status
 
-Both launch runs complete 2026-07-18, same retrieval window (43 min apart). Ready for the first blind comparison.
+Both launch runs complete 2026-07-18, same retrieval window (43 min apart). First blind comparison filed: [2026-07-18-research-vs-spartan-deep-research](comparisons/2026-07-18-research-vs-spartan-deep-research.md) — both passes "slightly A" (baseline) overall; spartan wins depth of synthesis; awaiting human verdict.
