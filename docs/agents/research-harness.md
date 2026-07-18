@@ -25,6 +25,10 @@ experiments/<topic>/
     YYYY-MM-DD-<slug>.md
 ```
 
+## The self-improvement loop (ADR-0001)
+
+Event-driven, propose-only, preferences-anchored, harness-validated — full design in [`docs/adr/0001-self-improvement-loop.md`](../adr/0001-self-improvement-loop.md). Operationally: after each comparison's human verdict, `compare-runs` appends to [`analyses/LEDGER.md`](../../analyses/LEDGER.md) and runs one loop iteration (proposals as PRs, or a recorded "no change warranted").
+
 ## Cross-experiment analyses
 
 Analyses spanning multiple experiments (prompt sensitivity, skill fingerprints across topics, …) live in top-level `analyses/YYYY-MM-DD-<slug>.md`, written by the orchestrating session (not a blind judge) with the per-experiment comparisons as inputs, and linked from each experiment's Status.
