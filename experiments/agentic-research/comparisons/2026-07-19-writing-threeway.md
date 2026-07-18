@@ -46,4 +46,6 @@ Both passes confirmed the design held — "three formatting variants of the same
 
 ## Human verdict
 
-<!-- appended by the owner — the judge never fills this in -->
+Owner, 2026-07-19: **"i prefer the spartan rewrite"** — concurs with both passes' A > B > C. Second fully unanimous comparison in a row (judges + human aligned).
+
+Consequences: `daymade-deep-research+spartan-article-writing` (as a derived stack) is the validated answer to the owner's "daymade's depth in readable packaging" synthesis idea, and spartan-article-writing becomes the working default writing stage for deep-research stacks. Loop iteration: proposal PR codifying the prose-voice preference (rewriting over segmentation; spartan register) — see the ledger.

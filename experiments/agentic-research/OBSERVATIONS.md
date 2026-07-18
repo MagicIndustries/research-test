@@ -72,3 +72,8 @@ Dated log per the conventions.
 - **The rendered-form judge briefing changed judge behavior**: both passes independently identified the bare-adjacent-line reference rendering (invisible to the pre-briefing judges in the two-way) and pass 1 explicitly reasoned about how source lines collapse when rendered.
 - **Shared-content finding for the record**: pass 2 caught a looseness inherited from the research stage ("product category in about ten weeks" stretches to ~18 for Anthropic) — identical in all three, so attributable to daymade's research, not any writing stage; a candidate probe for the harder verification sampling the four-way observations proposed.
 - Caveat for the human verdict: the dispatch asymmetry (spartan ran under the rendered-output rules, pocock predates them) means B's reference-list failure is partly a rules-timing artifact — a pocock re-run under current rules would likely close that gap, though not the over-fragmentation critique.
+
+## 2026-07-19 — three-way human verdict + loop iteration
+
+- **Owner concurs: spartan rewrite preferred.** Second fully unanimous comparison in a row — after the 0-for-4 start, judges and human have aligned on every comparison since the formatting preferences and judge briefing landed. The loop's calibration story is now measurable: pre-codification agreement 0/4 passes, post-codification 5/6.
+- **Working default declared**: spartan-article-writing is the default writing stage for deep-research stacks; the validated combination for deep work is daymade research + spartan rewrite as a derived stack. Codified via loop proposal (prose-voice preference: rewriting over segmentation; concrete-first, short-declarative register).
