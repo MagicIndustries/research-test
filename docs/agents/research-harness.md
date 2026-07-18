@@ -150,12 +150,20 @@ Runs of one experiment should happen in the same time window where feasible, and
 
 RACE-style **relative** scoring — runs are scored against each other, not absolutely — on five dimensions: **coverage**, **depth of synthesis**, **instruction-following / actionability**, **readability / navigation**, **citation quality**. Plus a FACT-style **citation spot-check**: sample ≥5 claim–source pairs per report and verify the cited source actually supports the claim. Experiments may override dimensions or weights in PROMPT.md; the default is the cross-experiment baseline.
 
-## Judge protocol (v1)
+## Judge protocol (v2)
+
+v2 (default since [Require a cross-provider judge](https://github.com/MagicIndustries/research-test/issues/10)) supersedes v1. The change is judge sourcing: rubric scoring must come from a model whose provider produced **none** of the runs under comparison ([self-preference bias](https://arxiv.org/abs/2404.13076) — models favor their own family's outputs). Blinding, order-swap, and aggregation carry over from v1 unchanged.
 
 1. **Blind pack**: copy each run's output to neutral labels (`report-A`, `report-B`, …) with label assignment randomized; strip identity markers and normalize superficial format (harness-specific headers/footers, markdown flavor) — style tells de-blind a judge. Keep the label→variant key out of the judge's context.
-2. **Two passes, order-swapped**: the judge scores twice with presentation order reversed, each pass a fresh agent with no memory of the other. Judge **end-state, not process** — different research paths are legitimate.
-3. **Aggregate**: disagreements between passes are flagged in the comparison, never silently averaged.
-4. **Record the judge**: model id always; while the judge shares a provider with any run under comparison, note the self-preference caveat inline. Verbosity bias: report each output's length beside its scores. (v2, tracked in [Require a cross-provider judge](https://github.com/MagicIndustries/research-test/issues/10): a judge from a provider that produced none of the runs becomes required.)
+2. **Cross-provider judge**: run each scoring pass as a headless CLI/API call with the entire judge prompt — rubric, instructions, and the full blind pack — piped in as prompt text. The judge needs no tools (it scores end-state, not process), so no file access is involved. Routes on this machine, in preference order; ping the route with a trivial prompt before sending the real one, and step down on failure:
+   - **Antigravity CLI**: `agy -p "<prompt>" --model <model>` — pick a Gemini model from `agy models`. The live Google route (Gemini CLI's personal OAuth tier was retired in Antigravity's favor, 2026).
+   - **Gemini CLI**: `gemini -p "<prompt>"` — only with `GEMINI_API_KEY` set; OAuth for individuals is defunct.
+   - **Codex CLI or direct API script**: needed once Google models produce runs under comparison; requires an install/keys not currently present.
+3. **Two passes, order-swapped**: the judge scores twice with presentation order reversed, each pass a fresh headless invocation with no memory of the other. Judge **end-state, not process** — different research paths are legitimate.
+4. **Citation spot-check stays local**: verifying that a cited source supports its claim is mechanical fact-checking, not preference-shaped judging — Claude subagents keep running it regardless of judge provider.
+5. **Aggregate**: disagreements between passes are flagged in the comparison, never silently averaged.
+6. **Record the judge**: model id **and provider** always, plus the template's provider-independence line. Verbosity bias: report each output's length beside its scores.
+7. **Fallback (v1)**: only when no cross-provider route is reachable may a same-provider judge score. The comparison is then labelled `Protocol: v1 (fallback — no cross-provider judge reachable)`, carries the self-preference caveat inline, and is queued for re-judging once a route exists.
 
 ## Comparison file template
 
@@ -164,8 +172,9 @@ RACE-style **relative** scoring — runs are scored against each other, not abso
 ```markdown
 # <Experiment>: <runs compared>
 
-Judge: <model id> | Protocol: v1 order-swapped blind | Key: report-A = <variant>, ...
-Caveats: <self-preference/verbosity notes; retrieval-window gaps>
+Judge: <model id> (<provider>) | Protocol: v2 order-swapped blind, cross-provider | Key: report-A = <variant>, ...
+Provider independence: <judge provider> produced none of the compared runs (run providers: <list>). <!-- v1 fallback: replace with the shared provider + self-preference caveat -->
+Caveats: <verbosity notes; retrieval-window gaps>
 
 ## Scores
 
