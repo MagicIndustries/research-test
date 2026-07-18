@@ -30,6 +30,22 @@ Examples: `research--fable--cc`, `deep-research+content-engine--opus--cc`, `rese
 
 Model tokens are short names (`fable`, `opus`, `sonnet`, `gpt5`, `gemini`); the full model id belongs in RUN.md frontmatter. Harness tokens: `cc` (Claude Code), `codex`, `gemini-cli`, `api`, `manual`.
 
+## Skill stacks and writing skills
+
+A stack (`+`-joined) executes in listed order in one run: upstream stages (research) produce material, downstream stages (writing/document skills) shape the deliverable — e.g. `spartan-deep-research+article-writing--fable--cc`.
+
+- **Every stage** gets its definition snapshotted in `skill-snapshot/`.
+- A multi-stage run captures **`intermediate/<n>-<stage>/`** — the output each stage handed to the next — beside the final `output/`. The writing stage's delta is only judgeable if the pre-writing state survives.
+- **To compare writing skills**: hold the research stage constant and vary the writing stage (`research+A` vs `research+B` vs bare `research`). Such experiments should override the rubric to weight readability/navigation and instruction-following higher, and add a **stage-fidelity spot-check**: sample ≥5 claims from the final output and verify each exists in the intermediate — a writing stage must shape, never invent.
+
+## Industry skills (vendoring)
+
+Third-party skills are run from an in-repo vendored copy so runs are reproducible and snapshotable:
+
+- Location `.claude/skills/<source>-<name>/` (e.g. `spartan-deep-research`), contents byte-unmodified from upstream, plus a `PROVENANCE.md`: source package/repo, version, date vendored, upstream path or URL.
+- The variant's skill token is the vendored name.
+- A vendored skill is never edited — an improvement idea becomes one of our own skills and enters as a new variant.
+
 ## RUN.md schema
 
 YAML frontmatter + two prose sections. Every field present; unknowns recorded as `unknown`, never omitted.
