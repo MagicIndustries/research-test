@@ -50,4 +50,4 @@ baseline 95,903 tokens / 12m11s; spartan 98,079 tokens / 11m8s — again near-id
 
 ## Human verdict
 
-<appended by the owner — the judge never fills this in>
+**Owner (2026-07-18)**: prefers the way Spartan presents summaries overall; liked the baseline's getting-started material. Rather than a single winner, the owner distilled standing requirements from both experiments — citations, analysis, TL;DR-topped summaries, deep dives, audience tailoring, per-alternative getting-going guides plus an owner-tailored steps guide, tabular analysis, multiple READMEs, early term definitions with background/history, downloaded resource copies — now codified as [docs/agents/research-preferences.md](../../../docs/agents/research-preferences.md), to modify future experiments, tailor prompts, and shape the ultimate research agent.

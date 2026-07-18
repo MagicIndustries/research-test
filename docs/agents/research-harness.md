@@ -2,6 +2,8 @@
 
 The single source of truth for how research experiments are filed, run, and compared in this repo. The `run-experiment`, `file-run`, and `compare-runs` skills implement these conventions; edits here change their behaviour. Decided in [Spec the filing conventions](https://github.com/MagicIndustries/research-test/issues/2), informed by [the landscape survey](https://github.com/MagicIndustries/research-test/issues/3).
 
+**Owner preferences are load-bearing**: [`research-preferences.md`](research-preferences.md) holds the owner's standing requirements (citations, analysis, TL;DR, audience tailoring, examples, term definitions, …). Canonical prompts encode them by default; a prompt that deliberately omits one is running an experiment on that omission and its PROMPT.md hypothesis should say so.
+
 ## Vocabulary
 
 - **Experiment** — one prompt/area of interest, compared across variants. Lives at `experiments/<topic>/`.
