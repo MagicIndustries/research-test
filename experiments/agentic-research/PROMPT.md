@@ -24,6 +24,7 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 | spartan-deep-research--sonnet--cc | complete | [RUN.md](runs/spartan-deep-research--sonnet--cc/RUN.md) |
 | daymade-deep-research--fable--cc--r2 | complete | [RUN.md](runs/daymade-deep-research--fable--cc--r2/RUN.md) |
 | daymade-deep-research+pocock-edit-article--fable--cc--from-r2 | complete | [RUN.md](runs/daymade-deep-research+pocock-edit-article--fable--cc--from-r2/RUN.md) |
+| daymade-deep-research+spartan-article-writing--fable--cc--from-r2 | complete | [RUN.md](runs/daymade-deep-research+spartan-article-writing--fable--cc--from-r2/RUN.md) |
 | bio199-deep-research--fable--cc | later (needs Python setup) | — |
 | weizhena-deep-research--fable--cc | later (needs wiring) | — |
 
