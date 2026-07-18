@@ -29,10 +29,16 @@ One block per comparison, appended by `compare-runs` after the human verdict lan
 | 2026-07-18 | agentic-research | 〃 | readability | strongly B | strongly B | 8v6 / 9v6 — the decisive dimension |
 | 2026-07-18 | agentic-research | 〃 | citation | tie | tie | live check 5/5; fidelity 5/8 faithful, 3/8 drifted (re-stamping), 0 invented |
 | 2026-07-18 | agentic-research | 〃 | **overall** | B | B | **human = B ("definitely better but not great")** — first unanimous judge–human agreement |
+| 2026-07-19 | agentic-research | [writing-threeway](../experiments/agentic-research/comparisons/2026-07-19-writing-threeway.md) | coverage | tie | tie | content byte-identical by design |
+| 2026-07-19 | agentic-research | 〃 | synthesis | tie | A=C>B | pass 2: atomization dilutes connected reasoning |
+| 2026-07-19 | agentic-research | 〃 | instruction | A=B>C | tie | C's semicolon-fused step 5 |
+| 2026-07-19 | agentic-research | 〃 | readability | A>B>C | A>B>C | 8/6/5 and 9/7/5 — decisive; only A renders references one-per-line |
+| 2026-07-19 | agentic-research | 〃 | citation | tie | tie | fidelity: spartan 8/8 faithful (rule held) vs pocock 3/8 (pre-rule); live check deferred to two-way's 5/5 |
+| 2026-07-19 | agentic-research | 〃 | **overall** | A>B>C | A>B>C | **human = A ("i prefer the spartan rewrite")** — second fully unanimous comparison |
 
 Key: A/B are the comparison's blind labels — resolve via each comparison file's Key line. Costs live in RUN.md frontmatter.
 
-**Meta-metrics to date**: judge–human overall agreement **3/8 passes** (writing-stage comparison: both passes agreed with the human — first unanimous comparison); inter-pass overall agreement 3/3 on pairwise comparisons, 0/1 on the four-way; spot-check totals 41 SUPPORTED / 6 PARTIAL / 1 UNSUPPORTED across 48 live claims; first stage-fidelity check: 5/8 faithful, 3/8 drifted (citation re-stamping), 0 invented.
+**Meta-metrics to date**: judge–human overall agreement **5/10 passes** (last two comparisons fully unanimous); inter-pass overall agreement 4/4 on small comparisons, 0/1 on the four-way; spot-check totals 41 SUPPORTED / 6 PARTIAL / 1 UNSUPPORTED across 48 live claims; stage-fidelity: pocock 5/8 faithful + 3 re-stamping drifts (pre-rule) vs spartan 8/8 faithful (under the no-re-stamping rule) — the loop's rule change eliminated its target failure mode.
 
 **Loop obligations open**:
 
