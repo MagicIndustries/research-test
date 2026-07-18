@@ -39,7 +39,9 @@ Every session that touches an experiment **appends** a dated entry to its `OBSER
 
 ## Variant naming grammar
 
-`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates and re-run numbering never appear in directory names; they live in RUN.md.
+`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates never appear in directory names; they live in RUN.md.
+
+**Re-runs** (owner decision, 2026-07-18): a re-run of an existing variant appends an explicit `--r<N>` suffix (`daymade-deep-research--fable--cc--r2`). The original run keeps its name and files; both coexist with full provenance; the re-run's RUN.md Deviations state what changed and why (e.g. "own session, full search budget — original was quota-starved"). Comparisons name exactly which run they scored.
 
 Examples: `research--fable--cc`, `deep-research+content-engine--opus--cc`, `research--gpt5--codex`, `research--fable--cc--no-web`.
 
@@ -194,4 +196,4 @@ Branch + PR per unit, one squash-merge each; skills never commit to main.
 
 - Runs: `run/<experiment>--<variant>`
 - Comparisons: `compare/<experiment>`
-- A re-run of an existing variant: stop and ask — re-run versioning is deliberately undecided ([map](https://github.com/MagicIndustries/research-test/issues/1), Not yet specified).
+- A re-run of an existing variant: `run/<experiment>--<variant>--r<N>`, per the re-run rule in the variant grammar.
