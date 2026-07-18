@@ -46,6 +46,28 @@ Third-party skills are run from an in-repo vendored copy so runs are reproducibl
 - The variant's skill token is the vendored name.
 - A vendored skill is never edited — an improvement idea becomes one of our own skills and enters as a new variant.
 
+## Skill roster
+
+Research skills (each tested individually):
+
+| Token | Source | Note |
+|---|---|---|
+| `research` | Matt Pocock engineering set (in-repo) | The minimal baseline/control |
+| `spartan-deep-research` | Spartan package v1.27.0 | Single-prompt deep research |
+| `daymade-deep-research` | daymade/claude-code-skills @1bdc908 | Lead-agent + parallel subagents, evidence mapping |
+| `bio199-deep-research` | 199-biotechnologies @f2f2c0f | 8-phase pipeline with validation scripts; no published license — local testing only |
+| `weizhena-deep-research` | Weizhena/Deep-Research-skills @e5479f8 | Whole-repo snapshot: five-skill HITL family + web-search agent; needs per-run wiring before first use |
+
+Writing-stage skills (for stacks):
+
+| Token | Source | Note |
+|---|---|---|
+| `spartan-article-writing` | Spartan package v1.27.0 | Long-form articles/guides |
+| `pocock-writing-fragments` | mattpocock/skills @9603c1c | Explore: mine raw fragments |
+| `pocock-writing-beats` | mattpocock/skills @9603c1c | Exploit: assemble beats |
+| `pocock-writing-shape` | mattpocock/skills @9603c1c | Exploit: shape into an article |
+| `pocock-edit-article` | mattpocock/skills @9603c1c | Revise/tighten an existing draft |
+
 ## RUN.md schema
 
 YAML frontmatter + two prose sections. Every field present; unknowns recorded as `unknown`, never omitted.
