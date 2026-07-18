@@ -22,9 +22,10 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 | spartan-deep-research--fable--cc | complete | [RUN.md](runs/spartan-deep-research--fable--cc/RUN.md) |
 | daymade-deep-research--fable--cc | complete | [RUN.md](runs/daymade-deep-research--fable--cc/RUN.md) |
 | spartan-deep-research--sonnet--cc | complete | [RUN.md](runs/spartan-deep-research--sonnet--cc/RUN.md) |
+| daymade-deep-research--fable--cc--r2 | complete | [RUN.md](runs/daymade-deep-research--fable--cc--r2/RUN.md) |
 | bio199-deep-research--fable--cc | later (needs Python setup) | — |
 | weizhena-deep-research--fable--cc | later (needs wiring) | — |
 
 ## Status
 
-All four launch runs complete 2026-07-18, one parallel retrieval window. Four-way comparison filed 2026-07-18 ([comparisons/2026-07-18-four-way-launch.md](comparisons/2026-07-18-four-way-launch.md), v1 fallback judge under the provider hold): order-swapped passes split the overall verdict (daymade vs spartan-fable) while agreeing on the dimension picture; citation spot-check 19/20 supported. Awaiting human verdict; v2 re-judge queued for when the hold lifts.
+All four launch runs complete 2026-07-18, one parallel retrieval window. Four-way comparison filed 2026-07-18 ([comparisons/2026-07-18-four-way-launch.md](comparisons/2026-07-18-four-way-launch.md), v1 fallback judge under the provider hold): order-swapped passes split the overall verdict (daymade vs spartan-fable) while agreeing on the dimension picture; citation spot-check 19/20 supported. Human verdict recorded: **spartan-fable preferred** on formatting mechanics; v2 re-judge queued for when the hold lifts. Owner-requested full-budget daymade re-run (`--r2`) completed 2026-07-18 in its own session: all six tasks finished (the original lost d–f to quota starvation), with a retrieval-path deviation (curl-based search — see its RUN.md) and the harness's first automated cost capture ($25.11).
