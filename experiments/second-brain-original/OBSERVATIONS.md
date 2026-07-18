@@ -12,5 +12,5 @@ Dated log per the conventions; sibling of [second-brain](../second-brain/OBSERVA
 
 ## 2026-07-18 — second human verdict
 
-- The owner again sided with Spartan's *presentation* (summaries) while claiming the baseline's getting-started material — i.e., across two comparisons the human verdict consistently cherry-picks complementary strengths rather than crowning a variant. The harness's per-dimension scoring supports this better than any overall verdict does; more weight for dropping "overall" from the judge protocol.
+- The owner again preferred Spartan overall (clarified in follow-up) while claiming the baseline's getting-started material — human verdicts crown a winner *and* cherry-pick complementary strengths. **Owner ruling: keep the judges' overall verdicts in the protocol going forward** (an earlier observation here suggested dropping them; overruled). Per-dimension scores and overall verdicts are both kept — and human-vs-judge disagreement on "overall" (2 for 2 so far: judges say baseline, owner says Spartan) is itself a metric worth tracking for the self-improvement loop.
 - The verdict produced a codified preferences doc (`docs/agents/research-preferences.md`) now load-bearing for future prompts and rubrics — first instance of a comparison directly feeding a standing convention change, which is the self-improvement loop happening manually.
