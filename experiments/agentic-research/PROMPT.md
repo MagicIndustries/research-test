@@ -27,4 +27,4 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 
 ## Status
 
-All four launch runs complete 2026-07-18, one parallel retrieval window. Ready for comparison (skill axis: research vs spartan vs daymade on fable; model axis: spartan on fable vs sonnet).
+All four launch runs complete 2026-07-18, one parallel retrieval window. Four-way comparison filed 2026-07-18 ([comparisons/2026-07-18-four-way-launch.md](comparisons/2026-07-18-four-way-launch.md), v1 fallback judge under the provider hold): order-swapped passes split the overall verdict (daymade vs spartan-fable) while agreeing on the dimension picture; citation spot-check 19/20 supported. Awaiting human verdict; v2 re-judge queued for when the hold lifts.
