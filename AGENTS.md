@@ -13,3 +13,7 @@ Default vocabulary — the five canonical triage labels, used as-is. See `docs/a
 ### Domain docs
 
 Single-context — one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Research harness
+
+This repo compares research skills/models as filed experiments under `experiments/`. Conventions (layout, RUN.md provenance, rubric, judge protocol, git flow): `docs/agents/research-harness.md`. Skills: `run-experiment` (execute + file a variant run), `file-run` (retrofit an outside run), `compare-runs` (blind-judged comparison).
