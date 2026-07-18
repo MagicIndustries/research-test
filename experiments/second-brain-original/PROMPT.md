@@ -19,7 +19,7 @@ Default rubric (docs/agents/research-harness.md), no overrides. Note for judges:
 | Variant | Status | Run |
 |---|---|---|
 | research--fable--cc | complete | [RUN.md](runs/research--fable--cc/RUN.md) |
-| spartan-deep-research--fable--cc | planned | — |
+| spartan-deep-research--fable--cc | complete | [RUN.md](runs/spartan-deep-research--fable--cc/RUN.md) |
 
 ## Status
 
