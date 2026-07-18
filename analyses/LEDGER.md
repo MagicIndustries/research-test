@@ -23,13 +23,20 @@ One block per comparison, appended by `compare-runs` after the human verdict lan
 | 2026-07-18 | agentic-research | 〃 | readability | B>C>D>A | C>B≈D>A | agree: A last; B/C swap first |
 | 2026-07-18 | agentic-research | 〃 | citation | A=D>C>B | D>A≈C>B | agree: D top, B last; spot-check 20: 19/1/0 |
 | 2026-07-18 | agentic-research | 〃 | **overall** | D>A>C>B | C>D>A≈B | **passes split**; **human = C (spartan-fable)** — pass 2 agrees, pass 1 doesn't |
+| 2026-07-18 | agentic-research | [writing-stage-r2-vs-edit](../experiments/agentic-research/comparisons/2026-07-18-writing-stage-r2-vs-edit.md) | coverage | tie | tie | content byte-identical by design |
+| 2026-07-18 | agentic-research | 〃 | synthesis | tie | tie | 〃 |
+| 2026-07-18 | agentic-research | 〃 | instruction | tie | slightly B | pass 2: scannable TL;DR is instructed behavior |
+| 2026-07-18 | agentic-research | 〃 | readability | strongly B | strongly B | 8v6 / 9v6 — the decisive dimension |
+| 2026-07-18 | agentic-research | 〃 | citation | tie | tie | live check 5/5; fidelity 5/8 faithful, 3/8 drifted (re-stamping), 0 invented |
+| 2026-07-18 | agentic-research | 〃 | **overall** | B | B | **human = B ("definitely better but not great")** — first unanimous judge–human agreement |
 
 Key: A/B are the comparison's blind labels — resolve via each comparison file's Key line. Costs live in RUN.md frontmatter.
 
-**Meta-metrics to date**: judge–human overall agreement **1/6 passes** (first-ever agreement: agentic-research pass 2); inter-pass overall agreement broke for the first time on the four-way (2/2 pairwise comparisons agreed, the 4-way split); spot-check totals 36 SUPPORTED / 6 PARTIAL / 1 UNSUPPORTED across 43 claims.
+**Meta-metrics to date**: judge–human overall agreement **3/8 passes** (writing-stage comparison: both passes agreed with the human — first unanimous comparison); inter-pass overall agreement 3/3 on pairwise comparisons, 0/1 on the four-way; spot-check totals 41 SUPPORTED / 6 PARTIAL / 1 UNSUPPORTED across 48 live claims; first stage-fidelity check: 5/8 faithful, 3/8 drifted (citation re-stamping), 0 invented.
 
 **Loop obligations open**:
 
 - ~~2× judge–human disagreement → propose reweighting/judge-briefing/argued-taste~~ **discharged 2026-07-18** by the loop iteration below (PR: preferences formatting + judge-briefing amendment); the agentic-research verdict added the missing signal — the owner's readability concern is *formatting mechanics* (paragraph breaks, one-citation-per-line), which the rubric's readability dimension wasn't naming.
 - v2 cross-provider re-judge of all v1-fallback comparisons once the provider hold lifts.
 - Four-way order-sensitivity: watch whether overall splits recur at n=4; if so, consider a third tie-break pass or pairwise decomposition (no proposal yet — one data point).
+- Writing-stage verdict loop iteration (2026-07-18): proposal PR filed — rendered-output formatting preference (bullet-listed references), derived-stack pattern standardized, edit-stage dispatch rules (scope + no citation re-stamping). Owner usage-model note (spartan everyday / daymade deep; synthesis interest) recorded in the verdict and the map's writing-skill fog.

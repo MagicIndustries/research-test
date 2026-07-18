@@ -60,4 +60,11 @@ Shared research content — one live check covers both reports. 5 claim–source
 
 ## Human verdict
 
-<!-- appended by the owner — the judge never fills this in -->
+Owner, 2026-07-18: **the edited report (report-B, the stack) is "definitely better but not great."** Agrees with both judge passes — the harness's first unanimous judge–human agreement — with a specific residual defect: "things like the list of citations at the bottom of the summary are still not well formatted, they should be showing up on individual lines or as bullet points."
+
+Diagnosis (orchestrating session, confirmed in the file): the references *are* on separate source lines, but with no bullet markers or blank lines between them, **rendered** markdown collapses them into one continuous paragraph. The formatting preference must target rendered output — bullet-list references — not source-line separation.
+
+Owner directions recorded with the verdict:
+
+- **The derived-stack pattern is endorsed**: "the pipeline of using a skill to rewrite an already downloaded / created output from a research skill is good." Other writing skills will be tried against the same intermediate.
+- **Research-skill usage model so far**: "spartan would be best for every day, with daymade for longer / deeper research" — depth of daymade valued, spartan's write-up style preferred. Open interest: "maybe there's a way to synthesize the two or have spartan include / refine content from daymade" — the natural harness expression is a `daymade-deep-research+spartan-article-writing` derived stack.
