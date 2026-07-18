@@ -23,4 +23,4 @@ Default rubric (docs/agents/research-harness.md), no overrides. Note for judges:
 
 ## Status
 
-Charted 2026-07-18; both runs firing same-day (also same-day as the sibling experiment's runs — cross-experiment comparison shares the retrieval window).
+Complete 2026-07-18: both runs landed, blind comparison filed ([2026-07-18-research-vs-spartan-deep-research](comparisons/2026-07-18-research-vs-spartan-deep-research.md) — "slightly A" = baseline, perfect inter-pass agreement; human verdict pending), and the cross-experiment [prompt-sensitivity analysis](../../analyses/2026-07-18-second-brain-prompt-sensitivity.md) written.

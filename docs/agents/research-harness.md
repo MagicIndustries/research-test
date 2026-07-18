@@ -23,6 +23,10 @@ experiments/<topic>/
     YYYY-MM-DD-<slug>.md
 ```
 
+## Cross-experiment analyses
+
+Analyses spanning multiple experiments (prompt sensitivity, skill fingerprints across topics, …) live in top-level `analyses/YYYY-MM-DD-<slug>.md`, written by the orchestrating session (not a blind judge) with the per-experiment comparisons as inputs, and linked from each experiment's Status.
+
 ## Observations log
 
 Every session that touches an experiment **appends** a dated entry to its `OBSERVATIONS.md`: anomalies, friction, hypothesis drift, cost surprises, judge quirks — anything noticed that the structured files don't capture. Entries are never rewritten, only appended. This log is the raw material the self-improvement loop will eventually mine; an unrecorded observation is lost to it.
