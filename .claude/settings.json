@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Write(experiments/**)",
+      "Edit(experiments/**)",
+      "Write(analyses/**)",
+      "Edit(analyses/**)",
+      "Write(//private/tmp/claude-501/**)",
+      "Edit(//private/tmp/claude-501/**)"
+    ]
+  }
+}
