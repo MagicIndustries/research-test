@@ -117,6 +117,8 @@ status: <running | complete | abandoned>
 
 Runs of one experiment should happen in the same time window where feasible, and RUN.md's `date` doubles as the retrieval timestamp: later re-runs are judged against a moved web, and the comparison must say so.
 
+**One variant per session** (standard since 2026-07-18): every run executes in its own Claude Code session, because the WebSearch quota (~200 searches) is session-wide — variants stacked as subagents of one orchestrating session share and starve it (the agentic-research launch window cost daymade its tasks d–f this way). A same-time-window launch means parallel or back-to-back *sessions*, never one session driving multiple research variants. If a run still exhausts its own quota, record the degradation in RUN.md's Deviations and the experiment's OBSERVATIONS.md — it's comparison-relevant coverage context.
+
 ## PROMPT.md template
 
 ```markdown
