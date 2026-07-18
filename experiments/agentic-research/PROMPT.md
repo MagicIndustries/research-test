@@ -20,11 +20,11 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 |---|---|---|
 | research--fable--cc | complete | [RUN.md](runs/research--fable--cc/RUN.md) |
 | spartan-deep-research--fable--cc | complete | [RUN.md](runs/spartan-deep-research--fable--cc/RUN.md) |
-| daymade-deep-research--fable--cc | running | — |
+| daymade-deep-research--fable--cc | complete | [RUN.md](runs/daymade-deep-research--fable--cc/RUN.md) |
 | spartan-deep-research--sonnet--cc | complete | [RUN.md](runs/spartan-deep-research--sonnet--cc/RUN.md) |
 | bio199-deep-research--fable--cc | later (needs Python setup) | — |
 | weizhena-deep-research--fable--cc | later (needs wiring) | — |
 
 ## Status
 
-Charted 2026-07-18; four launch runs fired in parallel, same retrieval window.
+All four launch runs complete 2026-07-18, one parallel retrieval window. Ready for comparison (skill axis: research vs spartan vs daymade on fable; model axis: spartan on fable vs sonnet).
