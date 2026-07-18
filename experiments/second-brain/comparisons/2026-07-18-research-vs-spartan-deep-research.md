@@ -51,4 +51,14 @@ Near-identical: baseline 90,493 tokens / 9m29s; spartan 93,315 tokens / 8m32s. T
 
 ## Human verdict
 
-<appended by the owner — the judge never fills this in>
+**Owner (2026-07-18): prefers the Spartan result overall** — disagreeing with both judge passes' "slightly A".
+
+> Overall I found spartan's output easier to understand. I like the "what I didn't find" section, and open questions; I thought the citations were done better. I liked the bit tailored to me in both, but the baseline's explanation of why some things should be skipped was important. I liked the analysis section and the general flow of spartan's output. All up I prefer the spartan result.
+
+Owner's per-dimension notes, kept as criteria for the future own-research-agent effort:
+
+- **Coverage**: keep A's repository extras (stars, dormancy); open-source/self-hosting vs hosted detail is always important to the owner.
+- **Depth of synthesis**: prefer breadth of data *and* analysis; strongly values the agent being self-critical of its own results and unbiased toward its own family of tools/vendors.
+- **Instruction-following / actionability**: follow instructions and give "why" rationale — but also make reasonable expansions from interpreted intent, with safety so things aren't lost.
+- **Readability**: the longer, more detailed approach — but always with a TL;DR.
+- **Citation quality**: everything sourced; owner sources preferred, secondary sources labelled as such, vendor/bias reporting flagged.
