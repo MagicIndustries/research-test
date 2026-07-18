@@ -154,6 +154,8 @@ Runs of one experiment should happen in the same time window where feasible, and
 
 RACE-style **relative** scoring — runs are scored against each other, not absolutely — on five dimensions: **coverage**, **depth of synthesis**, **instruction-following / actionability**, **readability / navigation**, **citation quality**. Plus a FACT-style **citation spot-check**: sample ≥5 claim–source pairs per report and verify the cited source actually supports the claim. Experiments may override dimensions or weights in PROMPT.md; the default is the cross-experiment baseline.
 
+Judge briefing for **readability / navigation** (added after the agentic-research verdict, 2026-07-18): the dimension explicitly includes formatting mechanics — paragraph structure (walls of unbroken prose score down), citation-list layout (one entry per line beats inline packing), and link style (links in the flow of the text beat numeric `[n]` registries that force reference-hopping). Owner verdicts have twice preferred depth wrapped in readable presentation over stronger apparatus in worse packaging; judges should weight accordingly.
+
 ## Judge protocol (v2)
 
 v2 (default since [Require a cross-provider judge](https://github.com/MagicIndustries/research-test/issues/10)) supersedes v1. The change is judge sourcing: rubric scoring must come from a model whose provider produced **none** of the runs under comparison ([self-preference bias](https://arxiv.org/abs/2404.13076) — models favor their own family's outputs). Blinding, order-swap, and aggregation carry over from v1 unchanged.

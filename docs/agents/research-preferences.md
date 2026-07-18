@@ -9,6 +9,7 @@ The owner's standing preferences for research output, distilled from their human
 - **Summaries**: Spartan-style presentation preferred — TL;DR up front, then depth. Detail is welcome (longer is fine) but always behind a TL;DR.
 - **Concept grounding**: break the concept down and define terms *early*; include background/history — where a term, concept, or body of research originated and how it developed.
 - **Structure**: tabular analysis for comparisons; multiple READMEs/intros for multi-file deliverables; per-method subdirectories when collecting resources.
+- **Formatting mechanics** (from the agentic-research verdict, 2026-07-18): prose broken into real paragraphs — a wall of unbroken text fails the owner regardless of content quality; citation and reference lists formatted **one entry per line**, never packed inline into a paragraph; links woven into the flow of the text preferred over numeric `[n]` registries that force reference-hopping; depth is welcome only when the navigation (flow, links, paragraphing) carries the reader through it.
 
 ## For "how do I do X" research specifically
 
@@ -28,4 +29,5 @@ The owner's standing preferences for research output, distilled from their human
 
 - First verdict: [second-brain comparison](../../experiments/second-brain/comparisons/2026-07-18-research-vs-spartan-deep-research.md) (Human verdict section).
 - Second verdict: [second-brain-original comparison](../../experiments/second-brain-original/comparisons/2026-07-18-research-vs-spartan-deep-research.md) (Human verdict section).
+- Third verdict: [agentic-research four-way comparison](../../experiments/agentic-research/comparisons/2026-07-18-four-way-launch.md) (Human verdict section) — source of the formatting-mechanics preference; depth explicitly valued but presentation decisive.
 - Supporting evidence for *why* these must be prompt/skill-encoded: [prompt-sensitivity analysis](../../analyses/2026-07-18-second-brain-prompt-sensitivity.md) — unrequested qualities silently disappear (audience tailoring), and prompt-level rules protect skills lacking built-in process (citations).
