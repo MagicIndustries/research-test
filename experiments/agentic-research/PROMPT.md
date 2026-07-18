@@ -19,7 +19,7 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 | Variant | Status | Run |
 |---|---|---|
 | research--fable--cc | complete | [RUN.md](runs/research--fable--cc/RUN.md) |
-| spartan-deep-research--fable--cc | running | — |
+| spartan-deep-research--fable--cc | complete | [RUN.md](runs/spartan-deep-research--fable--cc/RUN.md) |
 | daymade-deep-research--fable--cc | running | — |
 | spartan-deep-research--sonnet--cc | complete | [RUN.md](runs/spartan-deep-research--sonnet--cc/RUN.md) |
 | bio199-deep-research--fable--cc | later (needs Python setup) | — |
