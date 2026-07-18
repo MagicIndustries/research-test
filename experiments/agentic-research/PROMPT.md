@@ -18,7 +18,7 @@ Default rubric. Weighting note for the human verdict: the owner weights depth of
 
 | Variant | Status | Run |
 |---|---|---|
-| research--fable--cc | running | — |
+| research--fable--cc | complete | [RUN.md](runs/research--fable--cc/RUN.md) |
 | spartan-deep-research--fable--cc | running | — |
 | daymade-deep-research--fable--cc | running | — |
 | spartan-deep-research--sonnet--cc | complete | [RUN.md](runs/spartan-deep-research--sonnet--cc/RUN.md) |
