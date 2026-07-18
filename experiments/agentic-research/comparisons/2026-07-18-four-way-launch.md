@@ -66,4 +66,10 @@ Run by a local Claude subagent (fact verification is provider-independent per pr
 
 ## Human verdict
 
-<!-- appended by the owner — the judge never fills this in -->
+Owner, 2026-07-18: **spartan-deep-research--fable--cc (report C) preferred** — "of all of them I like the way the research is written and presented by the spartan deep-research skill using fable."
+
+On daymade (report D): the depth is valued ("I like the extra depth of the daymade results") but the presentation fails the reader — it "writes with no paragraph breaks", and the inline citation lists are "unreadable… each should be on its own line but they're in one massive paragraph"; the other reports "provide a better flow and links".
+
+Follow-ups requested by the owner: (1) a full, non-degraded daymade run (the launch run lost tasks d–f to the shared WebSearch quota — see OBSERVATIONS); (2) a way to get daymade to produce better-formatted reports.
+
+**Judge–human agreement**: the human verdict matches pass 2 (C first) and rejects pass 1 (D first) — the first time a pass has agreed with the owner (previously 0-for-4 across two comparisons). Notably the owner's reasoning (depth valued, presentation decisive) is closer to pass 2's rationale than pass 1's apparatus-weighted one.
