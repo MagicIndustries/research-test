@@ -39,7 +39,9 @@ Every session that touches an experiment **appends** a dated entry to its `OBSER
 
 ## Variant naming grammar
 
-`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates and re-run numbering never appear in directory names; they live in RUN.md.
+`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates never appear in directory names; they live in RUN.md.
+
+**Re-runs** (owner decision, 2026-07-18): a re-run of an existing variant appends an explicit `--r<N>` suffix (`daymade-deep-research--fable--cc--r2`). The original run keeps its name and files; both coexist with full provenance; the re-run's RUN.md Deviations state what changed and why (e.g. "own session, full search budget — original was quota-starved"). Comparisons name exactly which run they scored.
 
 Examples: `research--fable--cc`, `deep-research+content-engine--opus--cc`, `research--gpt5--codex`, `research--fable--cc--no-web`.
 
@@ -116,6 +118,8 @@ status: <running | complete | abandoned>
 `skill-snapshot/` holds byte-copies of each skill's SKILL.md and supporting files as used by the run. A definition that can't be recovered (external product, deleted skill) is recorded in `Deviations & notes` as **skill definition lost** — the reason this rule exists.
 
 Runs of one experiment should happen in the same time window where feasible, and RUN.md's `date` doubles as the retrieval timestamp: later re-runs are judged against a moved web, and the comparison must say so.
+
+**One variant per session** (standard since 2026-07-18): every run executes in its own Claude Code session, because the WebSearch quota (~200 searches) is session-wide — variants stacked as subagents of one orchestrating session share and starve it (the agentic-research launch window cost daymade its tasks d–f this way). A same-time-window launch means parallel or back-to-back *sessions*, never one session driving multiple research variants. If a run still exhausts its own quota, record the degradation in RUN.md's Deviations and the experiment's OBSERVATIONS.md — it's comparison-relevant coverage context.
 
 ## PROMPT.md template
 
@@ -201,4 +205,4 @@ Branch + PR per unit, one squash-merge each; skills never commit to main.
 
 - Runs: `run/<experiment>--<variant>`
 - Comparisons: `compare/<experiment>`
-- A re-run of an existing variant: stop and ask — re-run versioning is deliberately undecided ([map](https://github.com/MagicIndustries/research-test/issues/1), Not yet specified).
+- A re-run of an existing variant: `run/<experiment>--<variant>--r<N>`, per the re-run rule in the variant grammar.
