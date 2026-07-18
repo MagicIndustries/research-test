@@ -19,11 +19,11 @@ Default rubric (docs/agents/research-harness.md), no overrides.
 | Variant | Status | Run |
 |---|---|---|
 | research--fable--cc | complete | [RUN.md](runs/research--fable--cc/RUN.md) |
-| spartan-deep-research--fable--cc | planned | — |
+| spartan-deep-research--fable--cc | complete | [RUN.md](runs/spartan-deep-research--fable--cc/RUN.md) |
 | daymade-deep-research--fable--cc | later | — |
 | bio199-deep-research--fable--cc | later | — |
 | weizhena-deep-research--fable--cc | later (needs wiring) | — |
 
 ## Status
 
-Charted 2026-07-18; first two runs firing same-day.
+Both launch runs complete 2026-07-18, same retrieval window (43 min apart). Ready for the first blind comparison.
