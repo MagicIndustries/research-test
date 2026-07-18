@@ -39,7 +39,9 @@ Every session that touches an experiment **appends** a dated entry to its `OBSER
 
 ## Variant naming grammar
 
-`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates and re-run numbering never appear in directory names; they live in RUN.md.
+`<skill-stack>--<model>--<harness>` — skill stacks joined with `+`, a settings suffix appended only when non-default. Dates never appear in directory names; they live in RUN.md.
+
+**Re-runs** (owner decision, 2026-07-18): a re-run of an existing variant appends an explicit `--r<N>` suffix (`daymade-deep-research--fable--cc--r2`). The original run keeps its name and files; both coexist with full provenance; the re-run's RUN.md Deviations state what changed and why (e.g. "own session, full search budget — original was quota-starved"). Comparisons name exactly which run they scored.
 
 Examples: `research--fable--cc`, `deep-research+content-engine--opus--cc`, `research--gpt5--codex`, `research--fable--cc--no-web`.
 
@@ -117,6 +119,8 @@ status: <running | complete | abandoned>
 
 Runs of one experiment should happen in the same time window where feasible, and RUN.md's `date` doubles as the retrieval timestamp: later re-runs are judged against a moved web, and the comparison must say so.
 
+**One variant per session** (standard since 2026-07-18): every run executes in its own Claude Code session, because the WebSearch quota (~200 searches) is session-wide — variants stacked as subagents of one orchestrating session share and starve it (the agentic-research launch window cost daymade its tasks d–f this way). A same-time-window launch means parallel or back-to-back *sessions*, never one session driving multiple research variants. If a run still exhausts its own quota, record the degradation in RUN.md's Deviations and the experiment's OBSERVATIONS.md — it's comparison-relevant coverage context.
+
 ## PROMPT.md template
 
 ```markdown
@@ -152,12 +156,20 @@ RACE-style **relative** scoring — runs are scored against each other, not abso
 
 Judge briefing for **readability / navigation** (added after the agentic-research verdict, 2026-07-18): the dimension explicitly includes formatting mechanics — paragraph structure (walls of unbroken prose score down), citation-list layout (one entry per line beats inline packing), and link style (links in the flow of the text beat numeric `[n]` registries that force reference-hopping). Owner verdicts have twice preferred depth wrapped in readable presentation over stronger apparatus in worse packaging; judges should weight accordingly.
 
-## Judge protocol (v1)
+## Judge protocol (v2)
+
+v2 (default since [Require a cross-provider judge](https://github.com/MagicIndustries/research-test/issues/10)) supersedes v1. The change is judge sourcing: rubric scoring must come from a model whose provider produced **none** of the runs under comparison ([self-preference bias](https://arxiv.org/abs/2404.13076) — models favor their own family's outputs). Blinding, order-swap, and aggregation carry over from v1 unchanged.
 
 1. **Blind pack**: copy each run's output to neutral labels (`report-A`, `report-B`, …) with label assignment randomized; strip identity markers and normalize superficial format (harness-specific headers/footers, markdown flavor) — style tells de-blind a judge. Keep the label→variant key out of the judge's context.
-2. **Two passes, order-swapped**: the judge scores twice with presentation order reversed, each pass a fresh agent with no memory of the other. Judge **end-state, not process** — different research paths are legitimate.
-3. **Aggregate**: disagreements between passes are flagged in the comparison, never silently averaged.
-4. **Record the judge**: model id always; while the judge shares a provider with any run under comparison, note the self-preference caveat inline. Verbosity bias: report each output's length beside its scores. (v2, tracked in [Require a cross-provider judge](https://github.com/MagicIndustries/research-test/issues/10): a judge from a provider that produced none of the runs becomes required.)
+2. **Cross-provider judge**: run each scoring pass as a headless CLI/API call with the entire judge prompt — rubric, instructions, and the full blind pack — piped in as prompt text. The judge needs no tools (it scores end-state, not process), so no file access is involved. Routes on this machine, in preference order; ping the route with a trivial prompt before sending the real one, and step down on failure:
+   - **Antigravity CLI**: `agy -p "<prompt>" --model <model>` — pick a Gemini model from `agy models`. The live Google route (Gemini CLI's personal OAuth tier was retired in Antigravity's favor, 2026).
+   - **Gemini CLI**: `gemini -p "<prompt>"` — only with `GEMINI_API_KEY` set; OAuth for individuals is defunct.
+   - **Codex CLI or direct API script**: needed once Google models produce runs under comparison; requires an install/keys not currently present.
+3. **Two passes, order-swapped**: the judge scores twice with presentation order reversed, each pass a fresh headless invocation with no memory of the other. Judge **end-state, not process** — different research paths are legitimate.
+4. **Citation spot-check stays local**: verifying that a cited source supports its claim is mechanical fact-checking, not preference-shaped judging — Claude subagents keep running it regardless of judge provider.
+5. **Aggregate**: disagreements between passes are flagged in the comparison, never silently averaged.
+6. **Record the judge**: model id **and provider** always, plus the template's provider-independence line. Verbosity bias: report each output's length beside its scores.
+7. **Fallback (v1)**: only when no cross-provider route is reachable may a same-provider judge score. The comparison is then labelled `Protocol: v1 (fallback — no cross-provider judge reachable)`, carries the self-preference caveat inline, and is queued for re-judging once a route exists.
 
 ## Comparison file template
 
@@ -166,8 +178,9 @@ Judge briefing for **readability / navigation** (added after the agentic-researc
 ```markdown
 # <Experiment>: <runs compared>
 
-Judge: <model id> | Protocol: v1 order-swapped blind | Key: report-A = <variant>, ...
-Caveats: <self-preference/verbosity notes; retrieval-window gaps>
+Judge: <model id> (<provider>) | Protocol: v2 order-swapped blind, cross-provider | Key: report-A = <variant>, ...
+Provider independence: <judge provider> produced none of the compared runs (run providers: <list>). <!-- v1 fallback: replace with the shared provider + self-preference caveat -->
+Caveats: <verbosity notes; retrieval-window gaps>
 
 ## Scores
 
@@ -194,4 +207,4 @@ Branch + PR per unit, one squash-merge each; skills never commit to main.
 
 - Runs: `run/<experiment>--<variant>`
 - Comparisons: `compare/<experiment>`
-- A re-run of an existing variant: stop and ask — re-run versioning is deliberately undecided ([map](https://github.com/MagicIndustries/research-test/issues/1), Not yet specified).
+- A re-run of an existing variant: `run/<experiment>--<variant>--r<N>`, per the re-run rule in the variant grammar.
