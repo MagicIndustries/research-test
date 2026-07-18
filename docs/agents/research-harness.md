@@ -150,6 +150,8 @@ Runs of one experiment should happen in the same time window where feasible, and
 
 RACE-style **relative** scoring — runs are scored against each other, not absolutely — on five dimensions: **coverage**, **depth of synthesis**, **instruction-following / actionability**, **readability / navigation**, **citation quality**. Plus a FACT-style **citation spot-check**: sample ≥5 claim–source pairs per report and verify the cited source actually supports the claim. Experiments may override dimensions or weights in PROMPT.md; the default is the cross-experiment baseline.
 
+Judge briefing for **readability / navigation** (added after the agentic-research verdict, 2026-07-18): the dimension explicitly includes formatting mechanics — paragraph structure (walls of unbroken prose score down), citation-list layout (one entry per line beats inline packing), and link style (links in the flow of the text beat numeric `[n]` registries that force reference-hopping). Owner verdicts have twice preferred depth wrapped in readable presentation over stronger apparatus in worse packaging; judges should weight accordingly.
+
 ## Judge protocol (v1)
 
 1. **Blind pack**: copy each run's output to neutral labels (`report-A`, `report-B`, …) with label assignment randomized; strip identity markers and normalize superficial format (harness-specific headers/footers, markdown flavor) — style tells de-blind a judge. Keep the label→variant key out of the judge's context.
