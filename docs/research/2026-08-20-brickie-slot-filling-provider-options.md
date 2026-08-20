@@ -1,5 +1,7 @@
 # Replacing OpenAI in the Brickie pipeline: constrained slot-filling, not image analysis
 
+> **Superseded.** This note is kept for provenance only. The current, consolidated position is [HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md), which resolves the contradictions between these notes and folds in later corrections.
+
 Research note, 2026-08-20. Written against the reframing brief for `emagineer-unity-client` / `emagineer-webservices`. Supersedes the framing of the two earlier notes in this directory, which assumed open-vocabulary attribute extraction. **The frame correction is right and it changes the answer.**
 
 **Corrections to my earlier notes, for the record.** I guessed `head` was a head/face mesh identifier — it is a pre-multiplied facial-hair × glasses label, so **glasses is very much in scope** and my "eye_colour and glasses are gone, good" conclusion was wrong. I also recommended catalogue retrieval speculatively; the brief confirms rendered thumbnails already exist per catalogue entry, which moves that from speculation to a shovel-ready option. And I under-weighted constrained decoding to the point of not mentioning it, which the brief correctly identifies as the primary axis.

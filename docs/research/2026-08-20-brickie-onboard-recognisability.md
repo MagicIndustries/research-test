@@ -1,5 +1,7 @@
 # Brickies on-device: recognisability, not accuracy
 
+> **Superseded.** This note is kept for provenance only. The current, consolidated position is [HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md), which resolves the contradictions between these notes and folds in later corrections.
+
 Research note, 2026-08-20. Third pass, and the first written against **the actual `brickie_schema.json`** rather than a description of it. Supersedes the framing of the earlier notes in this directory.
 
 **Update, 2026-08-20 (rev 2): the palette may be expanded to any colour in the LEGO range.** That lifts the hardest constraint in the first version of this note. I've re-run the analysis against the authoritative [LDraw `LDConfig.ldr`](https://github.com/ctiller/ldraw/blob/master/LDConfig.ldr) — 191 defined colours, **85 usable plain solid colours** after excluding transparent, chrome, pearlescent, rubber, metallic and glitter finishes, plus LDraw's two meta-colours (`CODE 16` Main_Colour and `CODE 24` Edge_Colour, which are not real part colours). §3.1–§3.3 are rewritten with specific colours to add. §3.6, the hair-parts gap, is unchanged and is now clearly the binding constraint.

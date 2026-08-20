@@ -1,5 +1,7 @@
 # Extracting facial attributes from a selfie: models, services, and the licensing trap
 
+> **Superseded.** This note is kept for provenance only. The current, consolidated position is [HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md), which resolves the contradictions between these notes and folds in later corrections.
+
 Research note, 2026-08-20. Question: find a model or service that takes a selfie and returns structured attributes (`hair_colour`, `skin_colour`, `eye_colour`, `wears_glasses`, `head_accessory`, `hair_style`, …), preferring (1) on-device inside a Unity mobile app, failing that (2) self-hosted on infrastructure we control, failing that (3) a third-party API.
 
 **Operating conditions** (these drive most of the conclusions below): a **commercial mobile app**, not a game — Unity is the platform because parts of the app work in 3D space. There is **no frame-rate budget**. The interaction is single-shot: the user takes a selfie or picks a photo from their library, then **waits on a progress state while processing runs**. One image, one result, user attention already parked. **The latency budget is up to 10 seconds** end-to-end — see §3b, which is where that number does real work.

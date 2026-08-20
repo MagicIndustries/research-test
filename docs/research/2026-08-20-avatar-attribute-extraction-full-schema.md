@@ -1,5 +1,7 @@
 # Extracting a full avatar schema from a photo: what the field list changes
 
+> **Superseded.** This note is kept for provenance only. The current, consolidated position is [HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md), which resolves the contradictions between these notes and folds in later corrections.
+
 Research note, 2026-08-20. Companion to [the facial-attribute note](2026-08-20-selfie-facial-attribute-extraction.md), which assumed a face-only schema. The **actual** production schema is wider and the widening changes the recommended architecture.
 
 **The schema currently extracted by asking OpenAI to analyse the image:**
