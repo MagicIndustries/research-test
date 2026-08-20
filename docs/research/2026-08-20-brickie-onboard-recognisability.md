@@ -2,6 +2,8 @@
 
 Research note, 2026-08-20. Third pass, and the first written against **the actual `brickie_schema.json`** rather than a description of it. Supersedes the framing of the earlier notes in this directory.
 
+**Update, 2026-08-20 (rev 2): the palette may be expanded to any colour in the LEGO range.** That lifts the hardest constraint in the first version of this note. I've re-run the analysis against the authoritative [LDraw `LDConfig.ldr`](https://github.com/ctiller/ldraw/blob/master/LDConfig.ldr) — 191 defined colours, **85 usable plain solid colours** after excluding transparent, chrome, pearlescent, rubber, metallic and glitter finishes, plus LDraw's two meta-colours (`CODE 16` Main_Colour and `CODE 24` Edge_Colour, which are not real part colours). §3.1–§3.3 are rewritten with specific colours to add. §3.6, the hair-parts gap, is unchanged and is now clearly the binding constraint.
+
 **What changed.** The goal is an *approximate LEGO caricature that feels immediately recognisable*, not a correct classification. Privacy is paramount and on-device is the default, with hosted and third-party as opt-in tiers and a remote fallback for incapable devices. Parts are colourisable and new ones are being made. Given that, I read the schema and analysed it, and **most of the highest-value findings are in your own data rather than in the model landscape.** Several are fixable this week with no model at all.
 
 ---
@@ -10,19 +12,23 @@ Research note, 2026-08-20. Third pass, and the first written against **the actua
 
 1. **Recognisability is carried by four things, not fifteen.** The face-perception literature is consistent that the external hairline is "a powerful frame of reference for the perceptual assessment of individuals' appearances", and that internal and external features are encoded holistically. For a LEGO caricature that means **hair silhouette, hair colour, skin tone, and the glasses/facial-hair combination** carry nearly all of "that's me". Torso and legs carry almost none. Rank the pipeline accordingly — currently all 15 slots get equal engineering attention and 9 of them barely matter.
 
-2. **Your colour matching will be wrong in a specific, fixable way.** Nearest-neighbour by ΔE crosses hue families. Tested against your actual `body_color` palette: **forest green → near-black** (ΔE 35) *even though two greens exist in the palette*; **purple → blue** (ΔE 31) *even though purple exists*; maroon → coral (ΔE 44); mid-brown → grey (ΔE 35). Match **hue family first, then lightness within family**. Zero cost, visibly better output. §3.1.
+2. **Expanding the palette fixes the colour problem outright — here are the colours.** The current 23-entry garment palette maps maroon → coral (ΔE 44), mid-brown → grey (ΔE 35), forest green → near-black (ΔE 35), olive → grey (ΔE 30). **Eight additions from the official LEGO range collapse every one of those to ΔE 7–17.** Specific LDraw codes in §3.1. This is a data change, not an algorithm change, and it is the single highest-value edit available.
 
-3. **Only 14 of the 31 `skin_color` entries are plausible skin tones.** The other 17 include LEGO yellow, white, two greys and several bright oranges. Auto-matching across all 31 lets a pale user land on `#F4F4F4` white or `#C8C8C8` grey, and a warm-lit user on `#FA9C1C` orange. **Restrict automatic matching to the plausible subset; keep the rest as deliberate style choices.** §3.2.
+3. **There is a clean 12-step LEGO skin ladder available** — `Light_Nougat` at L\* 85 down to `Brown` at L\* 25, all official colours (§3.2). Adopt it as the auto-match set and keep the current stylistic entries (LEGO yellow, white, greys, bright oranges) as deliberate user choices. Today those stylistic entries are reachable by automatic matching, so a pale user can land on white and a warm-lit user on bright orange.
 
-4. **43 hair styles collapse to 12 silhouette families**, and two families (bob, short-forward-fringe) account for 20 of the 43. You do not need to distinguish `short_forward_fringe_left_curl` from `short_forward_fringe_left` — nobody will see it. **Classify the family, then pick within it.** A 12-way silhouette decision from a hair mask is dramatically more tractable on-device than a 43-way one, and captures nearly all the recognisability. §3.4.
+3b. **Three `skin_color` hexes are not official LDraw colours at all** — `#D7BA8C`, `#CCA373`, `#C65127`. That explains the known `#CCA373` mapping bug and finds two more instances of it. §3.2.
 
-5. **The hair catalogue cannot represent several large populations at all.** Zero entries for ponytail, bun, braids, updo, dreadlocks, twists, afro or coily hair; a single `curly` covers all texture; effectively no long hair. **No model can fix this — it's a parts problem**, and it caps achievable recognisability for those users at zero regardless of pipeline quality. This is the highest-value place to spend new-part budget. §3.6.
+4. **Ginger is one palette entry away.** `Dark_Orange` (CODE 484, `#91501C`) takes ginger/auburn from ΔE 17.6 to 8.9, and `Dark_Nougat` (CODE 128, `#AD6140`) takes copper red from 30.1 to 11.0. Five hair additions in total (§3.3). Hair colour is a Tier A identity slot, so this is the best value-per-effort item in the note.
 
-6. **`head` is 15 bases × 4 glasses with 10 combinations missing** — including, notably, that `long_beard` has *no* no-glasses variant. Decompose the slot into two questions, but you must handle the 10 illegal recombinations deliberately. Full list in §3.5.
+5. **43 hair styles collapse to 12 silhouette families**, and two families (bob, short-forward-fringe) account for 20 of the 43. You do not need to distinguish `short_forward_fringe_left_curl` from `short_forward_fringe_left` — nobody will see it. **Classify the family, then pick within it.** A 12-way silhouette decision from a hair mask is dramatically more tractable on-device than a 43-way one, and captures nearly all the recognisability. §3.4.
 
-7. **On-device is achievable for the identity-carrying slots today**, largely without shipping model weights: OS-native face landmarks and person segmentation on both platforms, plus MediaPipe's 763 KB hair segmenter. The hard remainder is silhouette-family classification, which is where a small trained model or a hosted tier earns its place. §4.
+6. **The hair catalogue cannot represent several large populations at all.** Zero entries for ponytail, bun, braids, updo, dreadlocks, twists, afro or coily hair; a single `curly` covers all texture; effectively no long hair. **No model can fix this — it's a parts problem**, and it caps achievable recognisability for those users at zero regardless of pipeline quality. This is the highest-value place to spend new-part budget. §3.6.
 
-8. **Measure recognisability, not slot accuracy.** "Does this look like you?" and a pick-your-friend-from-five test tell you what you actually care about. Per-slot accuracy would mark down a brickie that's instantly recognisable but has the wrong trousers. §7.
+7. **`head` is 15 bases × 4 glasses with 10 combinations missing** — including, notably, that `long_beard` has *no* no-glasses variant. Decompose the slot into two questions, but you must handle the 10 illegal recombinations deliberately. Full list in §3.5.
+
+8. **On-device is achievable for the identity-carrying slots today**, largely without shipping model weights: OS-native face landmarks and person segmentation on both platforms, plus MediaPipe's 763 KB hair segmenter. The hard remainder is silhouette-family classification, which is where a small trained model or a hosted tier earns its place. §4.
+
+9. **Measure recognisability, not slot accuracy.** "Does this look like you?" and a pick-your-friend-from-five test tell you what you actually care about. Per-slot accuracy would mark down a brickie that's instantly recognisable but has the wrong trousers. §7.
 
 ---
 
@@ -68,54 +74,68 @@ Nine of the fifteen slots are Tier C. **Engineering effort should be roughly inv
 
 All of the following are from analysing `brickie_schema.json` directly.
 
-### 3.1 Nearest-ΔE colour matching crosses hue families
+### 3.1 The garment palette: eight colours to add
 
-I converted the `body_color` palette to CIELAB and matched common real-world garment colours against it:
+The 23-entry `body_color` / `legs_color` palette lacks most common real-world clothing colours. With the full LEGO range available, every gap closes. Distances are CIE76 ΔE in Lab against the real-world colour.
 
-| Real colour | Nearest LEGO entry | ΔE | Problem |
+| Real colour | Current best | ΔE now | Recommended addition | ΔE after |
+|---|---|---|---|---|
+| maroon | `#F06D61` Salmon | **43.9** | **CODE 320 `Dark_Red` `#720012`** | 15.7 |
+| mid brown | `#8A928D` Light Grey | **35.4** | **CODE 86 `Medium_Brown` `#7B5D41`** | **7.8** |
+| forest green | `#1B2A34` Black | **35.2** | **CODE 288 `Dark_Green` `#00451A`** | **7.8** |
+| olive / khaki | `#8A928D` Light Grey | **30.4** | **CODE 330 `Olive_Green` `#77774E`** | **6.9** |
+| purple | `#1E5AA8` Blue | **31.0** | **CODE 22 `Purple` `#671F81`** | 16.7 |
+| tan / beige | `#C8C8C8` | **28.6** | **CODE 19 `Tan` `#B0A06F`** | **8.3** |
+| dusty pink | `#8A928D` Light Grey | 27.2 | CODE 13 `Pink` `#F6A9BB` | 17.6 |
+| teal | `#8A928D` Light Grey | 25.0 | CODE 378 `Sand_Green` `#708E7C` | 19.4 |
+
+**Three honest limits.** *Mustard* doesn't improve — LEGO has no true mustard, and `Bright_Light_Orange` at ΔE 23.9 remains the best available. *Denim blue* stays around ΔE 18; there is no denim in the LEGO range. *Purple* and *maroon* improve a lot but remain in the mid-teens, because LEGO's purple and dark red are both more saturated than the real garment colours. These are genuine medium limits, and per §2 garment colour is Tier B, so they're acceptable.
+
+**Correction to rev 1 of this note.** I wrote that the palette had "no true black". That was wrong in the way that matters: **`#1B2A34` *is* LEGO Black, `CODE 0`.** It's a very dark desaturated blue rather than `#000000`, but it is the correct and only answer for black clothing, and black/charcoal/navy already match well (ΔE 10–12).
+
+**On the matching algorithm.** Rev 1 recommended hue-family-first matching to stop ΔE crossing hue families — forest green landing on black despite two greens existing. **A denser palette fixes that more decisively than the algorithm does**, so I'm demoting that recommendation: with the additions above, plain nearest-neighbour gets forest green right. Keep a hue-family guard for the dark, low-chroma region where Lab distance still misbehaves, and prefer **CIEDE2000 over CIE76** — but the palette edit is the primary fix and the algorithm change is now a secondary refinement.
+
+### 3.2 Skin: adopt the official LEGO nougat ladder
+
+The LEGO range contains a clean, evenly-spaced skin ramp. Ordered light to dark:
+
+| CODE | Name | Hex | L\* |
 |---|---|---|---|
-| maroon | `#F06D61` coral | 43.9 | Dark red → salmon pink |
-| mid brown | `#8A928D` grey | 35.4 | No brown in palette at all |
-| **forest green** | `#1B2A34` near-black | **35.2** | **Palette has two greens** |
-| **purple** | `#1E5AA8` blue | **31.0** | **Palette has `#8A12A8` purple** |
-| olive/khaki | `#8A928D` grey | 30.4 | No olive |
-| tan/beige | `#C8C8C8` light grey | 28.6 | No tan |
-| mustard | `#FCAC00` orange | 23.9 | Acceptable |
-| navy / black / charcoal | `#1B2A34` | 10–12 | Good |
-| white / cream | `#F4F4F4` | 4–12 | Good |
+| 78 | `Light_Nougat` | `#FFC995` | 84.6 |
+| 68 | `Very_Light_Orange` | `#FDC383` | 82.7 |
+| 100 | `Light_Salmon` | `#F9B7A5` | 80.0 |
+| 125 | `Light_Orange` | `#F9A777` | 75.5 |
+| 509 | `Fabuland_Orange` | `#CF8A47` | 63.3 |
+| 92 | `Nougat` | `#BB805A` | 58.7 |
+| 84 | `Medium_Nougat` | `#AA7D55` | 56.0 |
+| 128 | `Dark_Nougat` | `#AD6140` | 49.3 |
+| 86 | `Medium_Brown` | `#7B5D41` | 41.9 |
+| 484 | `Dark_Orange` | `#91501C` | 41.0 |
+| 70 | `Reddish_Brown` | `#5F3109` | 25.7 |
+| 6 | `Brown` | `#543324` | 24.9 |
 
-Two distinct problems, with different fixes.
+**Use this as the automatic-match set.** It spans L\* 25–85 with reasonably even steps, which is what a skin matcher needs. Keep the current stylistic entries — LEGO yellow `#FAC80A`, white, the greys, the bright oranges, the pinks — as **user-selectable style choices**, not as automatic targets. Today they are reachable automatically, which is how a pale user under a bright window lands on white and a warm-lit user on bright orange.
 
-**Problem A — the metric picks the wrong family.** Forest green and purple both have correct-hue entries available and the distance metric doesn't choose them, because dark low-chroma colours sit closer to the dark neutral in Lab than to their own saturated hue. **Fix: two-stage matching.** Classify the source colour into a hue family (red / orange / yellow / green / cyan / blue / purple / magenta / neutral), then choose within that family by lightness. Fall back to the neutral ramp only when chroma is genuinely low. This is a few dozen lines and it fixes the two worst cases outright.
+**Three entries are not official LDraw colours.** `#D7BA8C`, `#CCA373` and `#C65127` do not appear in `LDConfig.ldr`, so they cannot map to a `CODE N`. This explains the known `#CCA373` bug — the server's `SKIN_COLORS` map has no entry because **there is no official colour to map it to** — and identifies two more instances of the same problem. Nearest official equivalents: `#D7BA8C` → CODE 19 `Tan`, `#CCA373` → CODE 19 `Tan`, `#C65127` → CODE 366 `Earth_Orange`. Better still, drop all three in favour of the ladder above.
 
-**Problem B — the palette genuinely lacks common clothing colours.** There is no brown, tan, beige, olive or maroon in the 23-colour garment palette, and no true black (`#1B2A34` is a very dark blue-grey). Those are among the most common real-world clothing colours. No algorithm fixes this. If garment colour matters to you, **the cheapest high-value palette additions are brown, tan/beige, and olive.** If it doesn't matter much — and per §2 it's Tier B — then accept it and let the hue-family rule keep the errors sane.
+### 3.3 Hair: five additions, and ginger is solved
 
-### 3.2 The skin palette needs partitioning before it's used for matching
+Only 7 of the current 28 `hair_color` entries are natural. The LEGO range covers the natural spectrum properly.
 
-Of 31 `skin_color` entries, I classify **14 as plausible skin tones** and **17 as not**:
+| Real hair | Current best | ΔE now | Recommended addition | ΔE after |
+|---|---|---|---|---|
+| ginger / auburn | `#764D3B` brown | 17.6 | **CODE 484 `Dark_Orange` `#91501C`** | **8.9** |
+| copper red | `#764D3B` brown | **30.1** | **CODE 128 `Dark_Nougat` `#AD6140`** | **11.0** |
+| dark brown | `#1B2A34` black | 20.5 | **CODE 6 `Brown` `#543324`** | 11.0 |
+| light brown | — | 13.9 | **CODE 86 `Medium_Brown` `#7B5D41`** | **6.3** |
+| dark blonde | — | 18.1 | **CODE 84 `Medium_Nougat` `#AA7D55`** | **9.6** |
+| jet black · blonde · platinum · grey | already fine | 5.7–14.6 | — | — |
 
-`#1B2A34`, `#352100`, `#BCB4A5`, `#C65127`, `#C8C8C8`, `#D67923`, `#D7BA8C`, `#D86D2C`, `#F4F4F4`, `#F58624`, `#F6A9BB`, `#FA9C1C`, `#FAC80A`, `#FCAC00`, `#FECCCF`, `#FFD67F`, `#FFEC6C`
+**The redhead problem is one colour.** `Dark_Orange` alone takes ginger from "becomes a brunette" to a good match. Given that hair colour is Tier A and red hair is highly distinctive — exactly the kind of feature §2 says to *exaggerate* rather than erase — this is the best single edit in the whole note.
 
-That set includes classic LEGO yellow, white, two greys, several bright oranges and two pinks. They clearly belong in the palette as *stylistic* options — but if automatic matching can reach them, then under warm indoor light a real skin tone can land on `#FA9C1C` bright orange, and a very pale user under a bright window can land on `#F4F4F4` white.
+The five additions also fill the gap between `#764D3B` brown and `#DEAC66` blonde, so mid-brown hair no longer has to jump to one extreme. Apply the same set to `facial_hair_color`, which shares the problem.
 
-**Fix: split the enum into `skin_auto` (the plausible 14) and `skin_style` (the rest).** Match automatically only into the first; expose the second in the editor. This is a one-line change to the matching set and removes a whole class of alarming output. *(My 14/17 split is heuristic — hue 20–75°, moderate chroma, mid lightness. Sanity-check it by eye before adopting; it's a starting point, not an authority.)*
-
-### 3.3 There is no ginger in the hair palette
-
-Of 28 `hair_color` entries, only **7 are natural-ish**: `#1B2A34` (black), `#645A4C` (dark grey-brown), `#764D3B` (brown), `#8A928D` (grey), `#C8C8C8` (light grey), `#DEAC66` (dark blonde), `#DFC176` (blonde). The remaining 21 are fantasy colours.
-
-Matching real hair colours into the natural subset:
-
-| Real | Match | ΔE |
-|---|---|---|
-| jet black | `#1B2A34` | 14.6 |
-| platinum | `#C8C8C8` | 13.3 |
-| ginger / auburn | `#764D3B` brown | 17.6 |
-| copper red | `#764D3B` brown | **30.1** |
-
-**Redheads become brunettes.** Globally that's a small population; in Ireland and Scotland it's roughly a tenth of users, and it's a highly distinctive feature — exactly the kind the caricature literature says you should be *exaggerating*, not erasing. **One additional palette entry around `#A0522D`–`#B5651D` would fix it**, and hair colour is Tier A. Best value-per-effort item in this note.
-
-Also note the natural ramp has no light/ash brown between `#764D3B` and `#DEAC66`, so mid-brown hair jumps to blonde or dark brown. Less severe, but a second candidate addition.
+**Note the overlap.** `Medium_Brown` (86), `Medium_Nougat` (84), `Dark_Nougat` (128) and `Dark_Orange` (484) appear in both the skin ladder and the hair additions. That is expected — hair and skin occupy neighbouring regions of colour space — and it means the total number of *new* codes to introduce across all slots is smaller than the per-slot lists suggest.
 
 ### 3.4 43 hair styles are really 12 silhouettes
 
@@ -163,7 +183,7 @@ Since you're commissioning parts, here's where I'd put the budget, ordered by us
 2. **Tied-back: ponytail and bun.** Very common daily styles across a large fraction of users; currently unrepresentable.
 3. **Long loose hair, 2–3 lengths.** Straight and wavy, past shoulders.
 4. **Braids and locs.**
-5. *(Colour)* **ginger/auburn** per §3.3.
+And note the colour additions in §3.1–§3.3 are **not** parts work — they're a data edit, available immediately and independent of any moulding lead time.
 
 By contrast, an eleventh short-forward-fringe variant adds nearly nothing — §3.4 shows you already have ten and users can't distinguish them.
 
@@ -191,8 +211,8 @@ The hair segmenter is the one real model, and it is small. It descends from Goog
 
 **Stage 2 — Tier A slots.**
 
-- `skin_color` — sample the cheek/forehead regions from face landmarks, avoiding specular highlights and shadow, average in Lab, match into the **plausible-14 subset** (§3.2) with hue-family matching (§3.1) and modest caricature exaggeration (§2).
-- `hair_color` — hair mask minus highlights, match into the **natural-7 subset** (§3.3) unless chroma is high enough to indicate genuinely dyed hair, in which case open up the fantasy set. That conditional is worth having: it means dyed hair, which is highly distinctive, gets represented rather than flattened to brown.
+- `skin_color` — sample the cheek/forehead regions from face landmarks, avoiding specular highlights and shadow, average in Lab, match into the **12-step LEGO nougat ladder** (§3.2) with modest caricature exaggeration (§2).
+- `hair_color` — hair mask minus highlights, match into the **expanded natural set** (§3.3, 7 current + 5 additions) unless chroma is high enough to indicate genuinely dyed hair, in which case open up the fantasy set. That conditional is worth having: it means dyed hair, which is highly distinctive, gets represented rather than flattened to brown.
 - `hair_style` — **silhouette family from mask geometry** (§3.4), then a representative or a cheap within-family refinement.
 - `head` — glasses (4-way) and facial hair (15-way) as two small classifications, then the legality map from §3.5. Glasses detection is well-trodden; facial-hair presence can be bootstrapped from the landmark-defined beard region minus the face-skin mask, which needs no classifier at all for presence, only for style.
 
@@ -248,10 +268,11 @@ The second is the one I'd build. It measures the actual product goal, requires n
 
 **This week, no models involved:**
 
-1. **Hue-family colour matching** (§3.1) — fixes forest-green-to-black and purple-to-blue outright.
-2. **Restrict skin matching to the plausible subset** (§3.2).
-3. **Fix `teeth_square_glasse`**, add `n/a` to `facial_hair_color`, fix the `head_accessory.confidence` description, add the dress consistency rule (§3.5, §3.7).
-4. **Add a ginger/auburn hair colour** (§3.3).
+1. **Add the 8 garment colours and 5 hair colours** (§3.1, §3.3). A data edit against the official LEGO range; collapses the worst mismatches from ΔE 30–44 to 7–17 and solves the redhead problem.
+2. **Replace the skin auto-match set with the 12-step nougat ladder** (§3.2), and move the stylistic entries to user-selectable only.
+3. **Drop or remap the three non-LDraw skin hexes** `#D7BA8C`, `#CCA373`, `#C65127` (§3.2) — this closes a known mapping bug and two undiscovered ones.
+4. **Fix `teeth_square_glasse`**, add `n/a` to `facial_hair_color`, fix the `head_accessory.confidence` description, add the dress consistency rule (§3.5, §3.7).
+5. **Switch the matcher to CIEDE2000** with a hue-family guard for dark low-chroma colours (§3.1) — now a refinement rather than the primary fix.
 
 **Next:**
 
@@ -268,7 +289,8 @@ The second is the one I'd build. It measures the actual product goal, requires n
 
 ## 9. Open questions and caveats
 
-- **My 14/17 skin split and 7/21 hair split are heuristic**, computed from hue and chroma bounds. They're a starting point; check them by eye.
+- **The skin ladder and hair additions are computed, not art-directed.** They come from Lab distances against representative real-world colours, using the official `LDConfig.ldr` values. Have someone look at them rendered on an actual brickie before adopting — colour reads differently on a small glossy stud than it does in a table.
+- **Physical versus digital matters for the palette expansion.** If brickies are rendered from `.mpd` with colour codes rewritten, any LDraw colour is free. If you ever want a brickie to be *physically buildable*, then a colour is only usable when the specific part is actually moulded in it — which is a much tighter constraint than the 85-colour range, and varies part by part. Worth deciding explicitly which of those you're promising.
 - **Whether silhouette family is recoverable from mask geometry alone** is untested. I believe several families separate on simple descriptors, but `bob` vs `short_swept` may not. Worth a quick experiment on a handful of photos before committing.
 - **No measured recognisability baseline exists**, so I can't say how good the current pipeline is or how much any of this improves it. §7 fixes that and should come first.
 - **The caricature-exaggeration lever is a hypothesis here**, well-supported in the perception literature but untested on LEGO caricatures specifically. Try it as an A/B once §7 exists — and keep the exaggeration modest, since the same literature shows it reverses beyond a point.
