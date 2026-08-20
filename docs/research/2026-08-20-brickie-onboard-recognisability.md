@@ -26,9 +26,13 @@ Research note, 2026-08-20. Third pass, and the first written against **the actua
 
 7. **`head` is 15 bases × 4 glasses with 10 combinations missing** — including, notably, that `long_beard` has *no* no-glasses variant. Decompose the slot into two questions, but you must handle the 10 illegal recombinations deliberately. Full list in §3.5.
 
-8. **On-device is achievable for the identity-carrying slots today**, largely without shipping model weights: OS-native face landmarks and person segmentation on both platforms, plus MediaPipe's 763 KB hair segmenter. The hard remainder is silhouette-family classification, which is where a small trained model or a hosted tier earns its place. §4.
+8. **The whole identity-carrying pipeline fits on-device in under 15 MB.** Face landmarker (3.6 MB) + MediaPipe hair segmenter (763 KB) + a small attribute model, all Apache-2.0, running in well under a second. Colours need no model at all. Options and trade-offs per stage in **§4**; the recommended architecture and tiering in **§5**.
 
-9. **Measure recognisability, not slot accuracy.** "Does this look like you?" and a pick-your-friend-from-five test tell you what you actually care about. Per-slot accuracy would mark down a brickie that's instantly recognisable but has the wrong trousers. §7.
+9. **Train the hard classifier on renders of your own parts.** You own 43 hair pieces, 30 torsos and 31 leg pieces as 3D assets — render them across pose, lighting and skin tone and you have unlimited perfectly-labelled data for your exact vocabulary, with no third-party dataset and no licence question. Microsoft's Hairmony did precisely this for hairstyle-from-one-image and reached 87.6% trained on synthetic renders alone. **This is the strongest idea in the note** (§4.4).
+
+10. **On-device VLMs are ruled out**, and it's measured rather than assumed: ~21 s for the fastest 3B-class model on flagship Android, ~14 s of it in vision preprocessing that prompt engineering can't shrink, on top of a 1–2 GB download (§4.4).
+
+11. **Measure recognisability, not slot accuracy.** "Does this look like you?" and a pick-your-friend-from-five test tell you what you actually care about. Per-slot accuracy would mark down a brickie that's instantly recognisable but has the wrong trousers. §7.
 
 ---
 
@@ -195,51 +199,117 @@ By contrast, an eleventh short-forward-fringe variant adds nearly nothing — §
 
 ---
 
-## 4. The on-device pipeline
+## 4. The options, stage by stage
 
-Ordered by the Tier A/B/C ranking, not by slot order.
+The pipeline is four stages, and each has a genuine choice attached. This section is the candidate landscape; §5 is the recommendation.
 
-**Stage 1 — face and regions.** Available with little or no shipped weight:
+### 4.1 Where inference runs inside Unity
 
-| Capability | iOS | Android |
+| Option | What it gives | Cost / caveat |
 |---|---|---|
-| Face detect + landmarks | Vision (OS) | ML Kit Face Detection |
-| Person / background | Vision person segmentation (OS, iOS 15+) | ML Kit Selfie Segmentation (~4.5 MB) |
-| Hair mask | MediaPipe hair segmenter (763 KB) | same |
+| **OS-native** — Apple Vision, Android ML Kit | Face detect + landmarks, person segmentation. **Ships no weights.** iOS Vision is OS-provided; ML Kit selfie segmentation adds ~4.5 MB | Two platform code paths; capability differs between them; no custom models |
+| **Unity Sentis** (`com.unity.ai.inference` 2.6.x) | First-party, ONNX opset 7–25, **also ingests LiteRT/TFLite** so MediaPipe artefacts drop in directly. Quantises to Float16/Uint8 at import. All Unity runtime platforms | Cold start is "a one-time delay of several seconds" for buffer allocation and kernel compilation — warm up on an earlier screen. CNN-scale graphs only |
+| **`onnxruntime-unity`** (asus4) | ONNX Runtime 1.26 with CoreML, NNAPI, XNNPACK execution providers — better operator coverage and NPU access than Sentis; backend swap is one line | Third-party package to maintain |
+| **TFLite Unity plugin** (asus4) | Shortest path if you stay entirely on MediaPipe `.tflite` with GPU/NNAPI/CoreML delegates | Third-party; no ONNX path |
 
-The hair segmenter is the one real model, and it is small. It descends from Google's *Real-time Hair Segmentation and Recoloring on Mobile GPUs* work, so it is designed for exactly this budget.
+**These compose rather than compete.** The sensible build uses OS-native for what it covers free, and one ML runtime for the rest.
 
-**Stage 2 — Tier A slots.**
+### 4.2 Getting the regions
 
-- `skin_color` — sample the cheek/forehead regions from face landmarks, avoiding specular highlights and shadow, average in Lab, match into the **12-step LEGO nougat ladder** (§3.2) with modest caricature exaggeration (§2).
-- `hair_color` — hair mask minus highlights, match into the **expanded natural set** (§3.3, 7 current + 5 additions) unless chroma is high enough to indicate genuinely dyed hair, in which case open up the fantasy set. That conditional is worth having: it means dyed hair, which is highly distinctive, gets represented rather than flattened to brown.
-- `hair_style` — **silhouette family from mask geometry** (§3.4), then a representative or a cheap within-family refinement.
-- `head` — glasses (4-way) and facial hair (15-way) as two small classifications, then the legality map from §3.5. Glasses detection is well-trodden; facial-hair presence can be bootstrapped from the landmark-defined beard region minus the face-skin mask, which needs no classifier at all for presence, only for style.
+Every option here is Apache-2.0 and commercially clean. Sizes measured from Google's model CDN:
 
-**Stage 3 — Tier B.** `body_color` from the torso region below the face box, k-means k=3, hue-family matched. `head_accessory` presence from whether the hair mask is truncated by a non-hair region above the hairline.
+| Model | Gives | Size |
+|---|---|---|
+| `blaze_face_short_range.tflite` | Face detection. Its paper reports 200–1000+ FPS on flagship devices — free at this budget | **224 KB** |
+| `face_landmarker.task` | 478 landmarks incl. iris — defines the beard region and cheek sampling points | **3.6 MB** |
+| `hair_segmenter.tflite` | Binary hair mask at 512×512 | **763 KB** |
+| `selfie_segmenter.tflite` | Person / background | **244 KB** |
+| `selfie_multiclass_256x256.tflite` | `hair · body-skin · face-skin · clothes · accessories` | **15.6 MB**, float32 only |
+| `pose_landmarker_lite.task` | 33 body landmarks incl. hips | **5.5 MB** |
 
-**Stage 4 — Tier C.** Defaults. `legs` and its three colours are not observable in a selfie; pick a sensible default, or derive `legs_color` from the torso colour so the figure at least coheres. **Do not guess.** A stable default beats a random one — if it varies between regenerations of the same photo, the user reads it as the product being broken.
+Note the asymmetry: the multiclass segmenter is published **float32 only** (the `float16` and `int8` URLs 404) and at 15.6 MB dominates the budget. Since you only need hair, face-skin and clothes — and the face landmarker already gives you the face region — **the 763 KB hair segmenter plus landmark geometry reaches the same place for 5% of the download.** Start there.
+
+### 4.3 Colour — settled, no model
+
+Segment region → trim luminance outliers → cluster in CIELAB → nearest entry in the expanded palette (§3.1–§3.3) → modest caricature exaggeration (§2). Deterministic, microseconds, offline, no licence exposure. **Nine of the fifteen slots need no model at all.** An LLM naming hex codes from a list is close to the worst available tool for the one part of this pipeline with an exact closed-form answer.
+
+### 4.4 The hard one: hair silhouette and garment style
+
+This is the only genuinely difficult stage, and where the options actually diverge. Scored against what matters here — recognisability, privacy, and what it costs to add parts, since your catalogue is growing.
+
+| # | Option | Recognisability | App size | Privacy | Cost to add a part | Verdict |
+|---|---|---|---|---|---|---|
+| **A** | **Geometric descriptors** from the hair mask — length vs face box, width, symmetry, forehead coverage, outline roughness → 12 families (§3.4) | Moderate; should separate most families | ~0 | Perfect | Retune thresholds | **Ship first** — cheapest thing that could work |
+| **B** | **Classifier trained on your own rendered parts** | Good | ~3–10 MB | Perfect | Re-render + retrain | **The target** — see below |
+| **C** | **Embedding retrieval** over rendered part thumbnails (DINOv2 / SigLIP, both Apache-2.0) | Unproven here — see caveat | ~25–90 MB | Perfect | **One index row** | Best scaling; test it |
+| **D** | **Hosted VLM on your infrastructure** | Good | 0 | Crop leaves device | Edit an enum | Opt-in tier |
+| **E** | **Third-party API** | Best today | 0 | Face or crop leaves device | Edit an enum | Opt-in only |
+| **F** | ~~On-device VLM~~ | — | 1–2 GB | Perfect | Edit an enum | **Ruled out** |
+
+**Why F is out.** A published case study on a OnePlus 13R (Snapdragon 8 Gen 2) measured **~21 s end-to-end for the fastest 3B-class VLM** — and ~14 s of that was visual preprocessing, not generation, so shorter prompts and constrained decoding don't help. Add a 1–2 GB download and low-end Android OOM behaviour and it fails on three axes at once. Worth revisiting only when a framework lands that uses the NPU for the vision encoder; the same study found the GPU sat at 0% throughout.
+
+**Why B is the target, and it's the strongest idea in this note.** You already own 43 hair parts, 30 torsos, 31 leg pieces **as 3D assets**. Render them onto synthetic heads across pose, lighting and skin tone, and you have unlimited perfectly-labelled training data for your exact vocabulary — no third-party dataset, no licence question, no labelling cost. This isn't speculative: Microsoft's **Hairmony** (SIGGRAPH Asia 2024) predicts hairstyle from a single image trained *exclusively* on 100k synthetic renders, reaching 87.6% mean accuracy with an explicit fairness objective. Same problem, same method, published numbers.
+
+Two things to borrow rather than use directly — Hairmony's data and weights are R-UDA licensed, which explicitly extends non-commercial terms to models trained on them:
+- **Its taxonomy structure.** Gathered × Length × Hair Type × Strand Styling, per scalp region. Your `hair_style` enum is a flat list of 43; theirs is orthogonal axes. If you're commissioning parts anyway (§3.6), a factored vocabulary is easier to cover and easier to classify.
+- **Its recipe.** Frozen self-supervised backbone (they used DINOv2, Apache-2.0) plus synthetic-only training, which is what bridges render-to-photo.
+
+**The caveat on C.** Retrieval is structurally lovely — the index derives from the catalogue so the two can't drift apart, and a new part costs one row rather than a retraining run. But you'd be matching a q60 photo of a person against a *stylised, non-photorealistic LEGO render*, and CLIP-family zero-shot retrieval is documented to degrade sharply on exactly that domain shift. SigLIP benchmarks best on average, so try it first. **Don't assume zero-shot works — it's a few days to find out**, and if top-5 is strong the confirm-screen UX (§7) makes top-1 weakness survivable.
+
+### 4.5 Face attributes — the `head` slot
+
+Decompose into **glasses (4-way)** and **facial hair (15-way)**, then apply the legality map for the 10 missing combinations (§3.5). Three routes:
+
+- **Facial-hair *presence* needs no classifier.** Take the landmark-defined jaw/chin/upper-lip polygon, subtract what the segmenter labels face-skin, threshold the remaining area. That also gives you the region to sample `facial_hair_color` from, and a genuine "clean-shaven" signal rather than a guessed colour.
+- **Glasses** is a small, well-trodden binary-plus-shape classification; a few-MB model, or the same synthetic-render trick using your own head parts.
+- **Style within facial hair** is the part that benefits most from option B.
+
+Decomposition also improves *calibration*, not just accuracy: a probability over 4 glasses options means something, where a probability over 50 pre-multiplied labels smears mass across near-duplicates differing only in the other factor.
+
+### 4.6 What the licence wall rules out
+
+Worth stating so nobody reaches for it later. Almost every public face/human parsing dataset and checkpoint is **non-commercial research only** — CelebA, CelebAMask-HQ, LaPa, Microsoft FaceSynthetics, Meta Sapiens (CC-BY-NC-4.0), LIP, and the popular Hugging Face face-parsing models trained on them. CelebA extends its restriction explicitly to "derived data", which reads onto weights.
+
+The trap is worse on the clothing side, where the tags mislead: `segformer_b2_clothes` gets ~408k downloads a month, declares `license: other`, and is trained on an ATR re-upload with **no licence field at all**, while two sibling models on the same data declare MIT. **On Hugging Face, read the `datasets:` field before the `license:` field.**
+
+**None of this constrains the recommended path**, because MediaPipe is Apache-2.0, DINOv2 and SigLIP are Apache-2.0, and option B trains on renders you own.
 
 ---
 
-## 5. Tiering, and where the face goes
+## 5. The recommended architecture
 
-Your stated preference maps cleanly onto the slot ranking:
+**On-device by default, everything above; hosted only for refinement; third-party only on explicit opt-in.**
 
-| Tier | What runs | What leaves the device |
+| Stage | Slots | What runs | Where |
+|---|---|---|---|
+| 1 · Detect + landmark | — | Vision / ML Kit, or BlazeFace + face landmarker | **Device** |
+| 2 · Hair mask | — | MediaPipe hair segmenter (763 KB) | **Device** |
+| 3 · Colours | `skin_color`, `hair_color`, `facial_hair_color`, `body_color`×3, `legs_color`×3 | Cluster + palette match + exaggeration | **Device**, no model |
+| 4 · Silhouette family | `hair_style` | Option A now → option B next | **Device** |
+| 5 · Face attributes | `head` | Geometry for presence, small classifier for style | **Device** |
+| 6 · Garment style | `body`, `legs` | Default; refine later | **Device** / hosted |
+
+Rough budget: face landmarker 3.6 MB + hair segmenter 763 KB + a ~3–10 MB attribute model ≈ **under 15 MB**, running in well under a second. **Latency is not a constraint here** — the earlier finding that a wait-state is a large budget still holds, so spend it on native-resolution segmentation and test-time augmentation rather than banking it.
+
+### The tiers
+
+| Tier | Runs | Leaves the device |
 |---|---|---|
-| **Default — on-device** | Everything in §4 | **Nothing** |
-| **Opt-in — your hosted service** | Better silhouette/garment models | Ideally a **background-removed hair-and-shoulders crop**, not a raw selfie |
-| **Opt-in — third party** | Highest accuracy, extra features | Same crop, with explicit consent |
-| **Fallback — incapable device** | Remote equivalent of §4 | Crop, with the same consent path |
+| **Default — on-device** | Stages 1–6 above | **Nothing** |
+| **Opt-in — your hosted service** | Better silhouette/garment models, higher-res parsing | A **background-removed hair or torso crop** |
+| **Opt-in — third party** | Highest accuracy, extra detection | Same crop, explicit consent |
+| **Fallback — incapable device** | Remote equivalent of stages 1–6 | Same crop, same consent path |
 
-Two points worth building in from the start.
+**Send crops, never the original.** Even in the hosted tiers, a silhouette model needs a masked hair region or a torso crop — not a photograph of a face. That is a materially smaller thing to describe to a user or a regulator, and it costs nothing because the masks are already computed on-device. It also matters more than usual here: this is a product used by children, and the amended COPPA Rule (enforceable since 22 April 2026) treats facial templates as personal information and requires separate parental consent for third-party disclosure absent an "integral to the service" argument.
 
-**Send crops, never the original.** Even in the hosted tiers, what the silhouette model needs is a masked hair region or a torso crop — not a photograph of a face. That is a materially smaller disclosure to describe to a user or a regulator, and it costs nothing since you're already computing the masks on-device.
+**Make the tier visible and reversible.** "Better results if you let us process this on our server" is a fair offer — but only if the default is genuinely on-device and the choice is remembered and revocable.
 
-**Make the tier visible and reversible.** "Better results if you let us process this on our server" is a reasonable offer; it's only reasonable if the default is genuinely on-device and the choice is remembered and revocable.
+### If the hosted tiers use an LLM
 
----
+Two things that are cheap and materially improve reliability:
+
+- **Constrain the output.** Your enums are closed, so use hard constraint rather than prompting and hoping. OpenAI's strict Structured Outputs compiles the schema to a grammar and masks invalid tokens (100% schema compliance versus ~86% for function calling); Gemini's `responseSchema` and `text/x.enum` do the same; XGrammar and llama.cpp GBNF give it for open models you host yourself. This guarantees enum *membership* — not that the member is right, but it removes a whole class of repair.
+- **Take confidence from logprobs, not from the model's own number.** Self-reported LLM confidence is systematically overconfident, clustering at 80–100% regardless of actual accuracy. Over a constrained enum, the token distribution *is* a distribution over the valid choices — a real posterior, and exactly what the confirm screen in §7 needs.
 
 ## 6. Lemojis
 
@@ -277,7 +347,9 @@ The second is the one I'd build. It measures the actual product goal, requires n
 **Next:**
 
 5. **Build the pick-me-out measurement** (§7) before changing the pipeline, so improvements are visible.
-6. **On-device Tier A prototype** — landmarks, hair mask, colour extraction, silhouette family. This is the whole privacy win and most of the recognisability.
+6. **On-device Tier A prototype** — landmarks, hair mask, colour extraction, silhouette family via geometric descriptors (§4.4 option A). This is the whole privacy win and most of the recognisability, in under 15 MB.
+6b. **Then the synthetic-render training set** (§4.4 option B) for hair family and facial-hair style — the step that takes it from "roughly right" to "reliably right", using only assets you already own.
+6c. **Test embedding retrieval in parallel** (§4.4 option C). A few days, and if it works it's the only option whose cost per new part is a single index row.
 7. **Commission parts against the §3.6 priority list**, in parallel — it's lead-time-bound and it caps everything else.
 
 **Then:**
