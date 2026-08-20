@@ -1,8 +1,8 @@
 # Extracting facial attributes from a selfie: models, services, and the licensing trap
 
-Research note, 2026-08-20. Question: find a model or service that takes a selfie and returns structured attributes (`hair_colour`, `skin_colour`, `eye_colour`, `wears_glasses`, `head_accessory`, `hair_type`, …), preferring (1) on-device inside a Unity mobile app, failing that (2) self-hosted on infrastructure we control, failing that (3) a third-party API.
+Research note, 2026-08-20. Question: find a model or service that takes a selfie and returns structured attributes (`hair_colour`, `skin_colour`, `eye_colour`, `wears_glasses`, `head_accessory`, `hair_style`, …), preferring (1) on-device inside a Unity mobile app, failing that (2) self-hosted on infrastructure we control, failing that (3) a third-party API.
 
-**Operating conditions** (these drive most of the conclusions below): a **commercial mobile app**, not a game — Unity is the platform because parts of the app work in 3D space. There is **no frame-rate budget**. The interaction is single-shot: the user takes a selfie or picks a photo from their library, then **waits on a progress state while processing runs**. One image, one result, user attention already parked.
+**Operating conditions** (these drive most of the conclusions below): a **commercial mobile app**, not a game — Unity is the platform because parts of the app work in 3D space. There is **no frame-rate budget**. The interaction is single-shot: the user takes a selfie or picks a photo from their library, then **waits on a progress state while processing runs**. One image, one result, user attention already parked. **The latency budget is up to 10 seconds** end-to-end — see §3b, which is where that number does real work.
 
 ## TL;DR
 
@@ -10,13 +10,17 @@ Research note, 2026-08-20. Question: find a model or service that takes a selfie
 
 2. **The one commercially-clean on-device foundation is Google's MediaPipe / AI Edge model zoo (Apache-2.0)**, specifically the **Multi-class Selfie Segmenter** (`background, hair, body-skin, face-skin, clothes, others (accessories)`) plus **BlazeFace** for detection. That gets you `hair_colour` and `skin_colour` cleanly via segment-then-quantise-colour. It does *not* give you glasses, hat, eye colour, or hairstyle — those need a classifier you train yourself on licensed or self-collected data.
 
-3. **A single-shot wait-state is a large budget, and it should be spent on accuracy, not saved.** With no frame-rate constraint and the user already waiting, seconds are available where a real-time design would have milliseconds. That means: run segmentation at native resolution rather than 256×256, skip aggressive quantisation, and use multi-crop or test-time augmentation on the hard attributes. It also means **latency is no longer a reason to prefer on-device over a server** — which materially promotes Tier 2 (see §4).
+3. **10 seconds is generous for everything except one option — and it rules that one out.** The specialist on-device pipeline uses maybe 1–2 s of it, so the surplus should be spent on accuracy: native-resolution segmentation, no speed-driven quantisation, test-time augmentation. A server round-trip fits comfortably. **An on-device VLM does not fit** — the best measured 3B-class VLM on a flagship Android phone takes ~21 s end-to-end, more than twice the ceiling (§3b). That reverses the tentative "genuine contender" verdict I reached before the number was known.
 
-4. **Recommended build: a small pipeline in Unity, not a single model.** Detect → align → segment → colour-quantise for the colour attributes, plus one multi-head classifier for the categorical ones. Unity's own **Sentis / Inference Engine** package is the natural runtime and already ships a validated Apache-2.0 BlazeFace conversion. On-device remains the default recommendation — but now on **privacy and operating cost**, not speed.
+4. **Watch cold start and the latency tail, not the mean.** Unity's Inference Engine allocates buffers, compiles GPU kernels and uploads weights on first run — "a one-time delay of several seconds", which would eat a third of your ceiling if it lands inside the measured window. Warm the model up on an earlier screen. And with a hard ceiling, **p99 is the number that matters, not p50** — which is a real argument for on-device, whose latency is predictable, over network paths, whose tails are not.
 
-5. **Third-party APIs are a poor fit for this specific attribute list.** AWS Rekognition and Face++ do not return hair colour, skin tone, or eye colour at all. Azure Face does return hair colour and accessories — but the entire Azure Face service is now gated to "Microsoft managed customers and partners", and `hair` is specifically in the *limited* capability set on top of that. Frontier VLM APIs (Claude, GPT) can produce exactly the JSON you want but their usage policies restrict biometric attribute inference.
+5. **Recommended build: a small pipeline in Unity, not a single model.** Detect → align → segment → colour-quantise for the colour attributes, plus one multi-head classifier for the categorical ones. Unity's own **Sentis / Inference Engine** package is the natural runtime and already ships a validated Apache-2.0 BlazeFace conversion. On-device remains the default recommendation — but now on **privacy and operating cost**, not speed.
 
-6. **`eye_colour` is the weakest link** at any tier and should be treated as best-effort or dropped. **`hair_type: "long pony tail"`** is the second weakest — it needs a hairstyle taxonomy that no off-the-shelf commercial API provides, and it is **the attribute that should decide your architecture** (§7), because it is the one a specialist CNN handles badly and a VLM handles naturally.
+7. **Third-party APIs are a poor fit for this specific attribute list.** AWS Rekognition and Face++ do not return hair colour, skin tone, or eye colour at all. Azure Face does return hair colour and accessories — but the entire Azure Face service is now gated to "Microsoft managed customers and partners", and `hair` is specifically in the *limited* capability set on top of that. Frontier VLM APIs (Claude, GPT) can produce exactly the JSON you want but their usage policies restrict biometric attribute inference.
+
+8. **`eye_colour` is the weakest link** at any tier and should be treated as best-effort or dropped.
+
+9. **`hair_style` is much closer to solved than it first appeared — see §2b.** Microsoft's **Hairmony** (SIGGRAPH Asia 2024) predicts hairstyle from a single image, trained *entirely on synthetic data*, at 87.6% accuracy with an explicit fairness objective. Its 74-label taxonomy decomposes `"long pony tail"` as `Gathered: Ponytail` + `Length: Mid-Back`, and keeps **hair *type*** (curl geometry: straight/wavy/curly/coily) separate from **hair *style*** (arrangement) — a distinction your schema should copy. The datasets are non-commercial under R-UDA, but the taxonomy and the synthetic-training recipe are the genuinely valuable parts, and both are reproducible.
 
 ---
 
@@ -28,13 +32,19 @@ Research note, 2026-08-20. Question: find a model or service that takes a selfie
 | `skin_colour` | Easy technically, **sensitive** | Segment `face-skin`, map to a published scale | Illumination dominates the signal; fairness/ethics |
 | `wears_glasses` | Easy | Binary classifier or parsing class | Rimless frames; sunglasses vs. clear |
 | `head_accessory` | Easy–moderate | Classifier / parsing class | Open vocabulary ("hat" vs. beanie vs. headscarf) |
-| `hair_type` (e.g. `"long pony tail"`) | **Hard** | Custom classifier over a defined taxonomy | No commercial off-the-shelf source; needs labelled data |
+| `hair_style` (e.g. `"long pony tail"`) | **Hard** | Custom classifier over a defined taxonomy | No commercial off-the-shelf source; needs labelled data |
 | `eye_colour` | **Hard** | High-res iris crop + classifier | Iris is tiny in a selfie; hazel/green poorly separable |
 
 Two notes on the hard ones:
 
 - **Eye colour.** In a typical front-camera selfie the visible iris is on the order of tens of pixels, often partly occluded by eyelid and specular highlight. Even in the well-controlled genomic-prediction literature, blue and brown are predicted well while intermediate colours are not — one study reports classifier accuracy rising from 84.6% to 94.6% simply by *excluding* hazel-eyed participants ([IrisPlex / eye colour ML](https://www.academia.edu/35797944/Genomic_Eye_Color_Classification_using_Machine_Learning)). Expect a usable blue/brown/dark split and unreliable green/hazel/amber. Design the app so a wrong eye colour is cosmetic, not load-bearing. The wait-state does buy you something real here, though: you can afford a high-resolution iris crop and multiple inference passes, which a real-time budget would forbid.
-- **Hairstyle.** `"long pony tail"` is a free-text style label, not a standard CV output. The public datasets that could support it are **Hairstyle30k** (30k images, 64 hairstyle classes, from [Learning to Generate and Edit Hairstyles](https://yanweifu.github.io/papers/hairstyle_v_14_weidong.pdf)) and **K-Hairstyle** (~500k high-resolution images with hair attributes annotated by professional hairstylists plus segmentation masks, [project page](https://psh01087.github.io/K-Hairstyle/) / [IEEE ICIP 2021](https://ieeexplore.ieee.org/document/9506557/)). Both are research releases — verify terms before commercial use. K-Hairstyle is the more interesting of the two because **its annotation schema is already decomposed the way I recommend building yours**: rather than one flat style class, it carries `Basestyle` (31 types), `Basestyle_type` and `Length` (hair length), `Curl`, `Bang`, `Side`, `Loss`, `Color`, `Exceptional`, plus **`Rgb` — the mean RGB of the hair region** — and a before/after styling flag ([project page](https://psh01087.github.io/K-Hairstyle/)). That the professionals who built a 500k-image hairstyle dataset chose orthogonal axes over a flat taxonomy is a useful signal for your own label design. A pragmatic alternative is to derive coarse style from the hair mask geometry (length below jawline, silhouette width, presence of a protruding tail region) rather than classify style directly.
+- **Hair style, and why it isn't hair type.** These are two different axes and the literature keeps them apart:
+  - **Hair *type*** means curl geometry — straight / wavy / curly / coily. This is the Andre Walker 1A–4C axis, and it's what CelebA's `Straight_Hair` / `Wavy_Hair` flags measure.
+  - **Hair *style*** means arrangement — ponytail, bun, braid, updo, parting, bangs. This is what `"long pony tail"` describes.
+
+  You almost certainly want both, and they need separate label sets. See §2b — a published, expert-designed taxonomy already exists that models both, and it decomposes `"long pony tail"` exactly as you'd want.
+
+  Other public options are **Hairstyle30k** (30k images, 64 flat hairstyle classes, from [Learning to Generate and Edit Hairstyles](https://yanweifu.github.io/papers/hairstyle_v_14_weidong.pdf)) and **K-Hairstyle** (~500k high-resolution images with attributes annotated by professional stylists plus segmentation masks — `Basestyle` (31 types), `Length`, `Curl`, `Bang`, `Side`, `Loss`, `Color`, and `Rgb`, the mean RGB of the hair region: [project page](https://psh01087.github.io/K-Hairstyle/) / [ICIP 2021](https://ieeexplore.ieee.org/document/9506557/)). Both are research releases; verify terms before commercial use. Both are superseded for your purpose by Hairmony below. A pragmatic alternative is to derive coarse style from the hair mask geometry (length below jawline, silhouette width, presence of a protruding tail region) rather than classify style directly.
 
 ---
 
@@ -63,6 +73,36 @@ The same code-vs-weights split bites on **InsightFace**: the code is MIT, but th
 - **(c)** Use non-commercial assets **only** for a prototype, and treat the licensed/self-trained version as required work before ship.
 
 ---
+
+## 2b. Hairmony — the closest thing to a solved `hair_style` problem
+
+Found late, and it reframes the hardest attribute in the request. **[Hairmony: Fairness-aware hairstyle classification](https://arxiv.org/abs/2410.11528)** (Microsoft, SIGGRAPH Asia 2024; [repo](https://github.com/microsoft/hairmony)) predicts a person's hairstyle **from a single image** — the exact shape of your problem, from the same Microsoft group that produced FaceSynthetics.
+
+**What it does.** Trained *exclusively on synthetic data* — 100,000 renders at 512×512 under varied lighting, pose and expression — on a frozen **DINOv2** backbone to bridge the synthetic-to-real gap. Reported **87.6% mean accuracy** with **92.5% mean fairness**, where "fairness" means accuracy differences across demographics are held small by construction rather than measured after the fact. That is a materially better starting point than anything else in this note.
+
+**The taxonomy is the prize.** 18 attributes — 10 global plus 8 local attributes across 8 scalp regions (front, top, crown, nape, left/right side, left/right temple), giving **74 labels per hairstyle**. The relevant ones:
+
+| Attribute | Scope | Values |
+|---|---|---|
+| **Gathered** | per region | None · Behind-Ear · **Bun** · Buns · **Ponytail** · Ponytails · On&nbsp;Skin · Knot · Knots · Other · Unknown |
+| **Length** | per region | Bald · Shaved · Very&nbsp;Short · Short · Ear · Chin · Shoulder · Armpit · Mid-Back · Waist |
+| **Hair Type** | per region | Coily · Curly · Wavy · Straight |
+| **Strand Styling** | per region | None · Twists · Dreadlocks · Braids · Other |
+| **Accessories** | global | None · Headband · Ribbon · Hairnet · Scrunchy · Comb · Clips · Beads |
+| **Bangs Style / Length** | global | 8 shapes; above / to / below eyebrows |
+| Parting · Hairline shape/position/visibility · Surface · Baby&nbsp;Hair · Direction · Layering · Strand Thickness · Decoration | mixed | — |
+
+**Your example decomposes exactly.** `"long pony tail"` = `Gathered: Ponytail` + `Length: Mid-Back`. Two orthogonal axes, both already defined, both with a fixed vocabulary. And note that **`Hair Type` (curl geometry) is a separate attribute from `Gathered` (arrangement)** — the taxonomy makes precisely the distinction between *type* and *style*, which is confirmation that both belong in your schema as separate fields.
+
+The design goals they state — completeness, fairness, granularity, simplicity, consistency, **objectivity** ("the language refers to physical attributes rather than cultural references"), extensibility — are worth adopting wholesale. Objectivity in particular solves a real problem: it keeps you out of culturally-loaded style naming.
+
+**Licence — and an important distinction.** The repo is under the **Research Use of Data Agreement (R-UDA) v1.0**, which is *stricter and clearer* than CelebA's. §2.1 restricts use to "non-commercial research… you may not use the Data or any Results in any commercial offering", and §5.5 removes any ambiguity: *"Artificial intelligence models trained on Data (and which do not include more than a de minimis portion of Data) are Results."* So **the datasets and anything trained on them are barred from your product.** No interpretation needed — unlike CelebA, R-UDA names the case.
+
+**But the taxonomy is a different artefact from the data.** The datasets live on separate Azure blob storage under R-UDA; the taxonomy is a definition document in the repo. A classification scheme — a list of attribute names and permitted values — is a system rather than a creative work, and systems generally aren't protected by copyright even where a specific written expression is. **This is a question for your counsel, not for me**, but the practical route is clear and is the one Microsoft themselves demonstrate: *adopt the vocabulary, render your own synthetic training data, train your own model.*
+
+**Two further things worth stealing:**
+- **Synthetic-only training now has a published result behind it.** My earlier recommendation to render your own data was reasoning by analogy; Hairmony is a measured demonstration on this exact task, at 87.6% accuracy. If the app's 3D side already has head assets, you are closer to reproducing this than most.
+- **Their real-world evaluation set ships labels only** — hair taxonomy labels layered on top of [FairFace](https://github.com/joojs/fairface), which users obtain separately. That's a clean pattern for routing around image licensing when you build your own eval set.
 
 ## 3. Tier 1 — on-device inside Unity (recommended)
 
@@ -95,7 +135,7 @@ Rule of thumb: **Sentis** for first-party support and simplest shipping; **onnxr
 
    Note the asymmetry: the multiclass segmenter is published **only** in float32 — `float16` and `int8` variants return 404 — and at 15.6 MB it dominates the budget. Sentis can quantise it to Float16 or Uint8 at import, which should bring it to roughly 8 MB / 4 MB, but the accuracy cost of that is **unmeasured and needs checking**. If it degrades, the dedicated 763 KB hair segmenter plus a separate skin mask is a much cheaper route to the same two colour attributes.
 3. **Colour-quantise** — take the hair and face-skin masks, discard specular highlights and shadowed pixels, convert to a perceptually uniform space (CIELAB), take a robust central estimate, and snap to the app's named palette. For skin, snap to the **Monk Skin Tone scale** — a 10-point open-source scale developed by Ellis Monk and released by Google, explicitly decoupled from race and from UV response, and now the preferred standard in computer vision over Fitzpatrick ([MST overview](https://en.wikipedia.org/wiki/Monk_Skin_Tone_Scale), [Google Research](https://research.google/blog/consensus-and-subjectivity-of-skin-tone-annotation-for-ml-fairness/)). Google also released the **MST-E** dataset (19 subjects across the 10 points) for testing annotation consistency across capture conditions.
-4. **Classify the rest** — one small multi-head CNN (MobileNetV3-small class of model, ~10 MB, or ~3 MB at uint8) over the aligned face crop, with heads for `wears_glasses`, `head_accessory`, `hair_type`, plus optionally facial hair and fringe/bangs. **This is the head you must train yourself** on commercially-licensed or self-generated data.
+4. **Classify the rest** — one small multi-head CNN (MobileNetV3-small class of model, ~10 MB, or ~3 MB at uint8) over the aligned face crop, with heads for `wears_glasses`, `head_accessory`, `hair_style`, plus optionally facial hair and fringe/bangs. **This is the head you must train yourself** on commercially-licensed or self-generated data.
 5. **Eye colour (optional)** — crop the iris using the landmarker's iris points, upsample, classify into a deliberately coarse set. Return a confidence and let the app fall back to a default.
 
 ### Spend the wait-state on accuracy
@@ -113,6 +153,65 @@ The real constraints in this design are **app download size** and **licence**, n
 
 ---
 
+## 3b. The 10-second budget, allocated
+
+A ceiling of 10 s sounds generous, and for most of the design it is. It is decisive in exactly one place.
+
+### Where the budget goes
+
+| Architecture | Modelled end-to-end | Verdict against 10 s |
+|---|---|---|
+| Specialist pipeline, on-device | **~1–2 s** | Fits with ~80% headroom |
+| Specialist pipeline, self-hosted | **~3–6 s** (upload dominates) | Fits, but network-variable |
+| Frontier VLM API | **~3–8 s** | Fits at p50; **tail is the risk** |
+| **VLM, on-device** | **~21 s measured** | ✗ **Does not fit** |
+
+The on-device pipeline breakdown — image decode and EXIF handling, detection, segmentation at native resolution, colour quantisation, the attribute head with 8-way test-time augmentation — plausibly totals 1–2 s on a mid-range phone. **These are modelled figures, not measurements** (§9), but they are an order of magnitude inside the ceiling, so the conclusion is robust even if each stage is 3× my estimate.
+
+### The on-device VLM does not fit, and the reason isn't the one you'd guess
+
+This is the finding that the 10-second number produces, and it is measured rather than estimated. A 2025 case study deployed LLaVA-1.5 7B, MobileVLM-3B and Imp-v1.5-3B on a **OnePlus 13R** (Snapdragon 8 Gen 2, Android 15) across three frameworks ([arXiv 2507.08505](https://arxiv.org/pdf/2507.08505)):
+
+| Model · framework | Image encode | Prompt eval | Decode | **Total** |
+|---|---|---|---|---|
+| MobileVLM-3B · llama.cpp | ~14.1 s | ~2 s | ~1 s | **~21 s** |
+| Imp-v1.5-3B · MLC-Imp | ~18 s | — | — | **~25 s** |
+| LLaVA-1.5 7B · llama.cpp | 3.1 s | 89 s (605 tok @ 147 ms) | 11.8 s (69 tok @ 172 ms) | **~101 s** |
+| LLaVA-1.5 7B · mllm | — | 78 s (19 tok @ 4,153 ms) | 94 s (51 tok @ 1,860 ms) | **~174 s** |
+
+**The fastest configuration anyone achieved was ~21 s — more than double your ceiling.** Two details matter more than the headline:
+
+- **The cost is in the vision stage, not generation.** Visual preprocessing was ~14 s of MobileVLM-3B's 21 s; decoding was ~1 s. So the usual mitigations — shorter JSON output, grammar-constrained decoding, fewer output tokens — **buy you almost nothing**. You cannot prompt-engineer your way under the ceiling.
+- **The accelerators sat idle.** The paper reports the Adreno 740 GPU at **0% busy** through llama.cpp's CPU runs, and names NPU/GPU offload of the encoder and attention blocks as the main unrealised lever. So this is a *tooling* limit, not a silicon limit — it may well fall within a couple of years. It has not fallen yet.
+
+Two honest caveats: the Snapdragon 8 Gen 2 is a 2022 part, so a 2026 flagship will do better; and MobileVLM-3B is larger than the ~256M–1B tier you'd actually reach for. A 500M-class model with a small vision tower might land far lower. But the gap is **2×, not 20%**, and the burden of proof sits with the optimistic case. Treat on-device VLM as **unproven against this ceiling** and measure before betting on it (§9).
+
+### Cold start is a real slice of 10 seconds
+
+Unity's Inference Engine must "allocate buffers, compile GPU kernels, and upload weights" on first run, which "can cause a one-time delay of several seconds at startup". Land that inside your measured window and you've spent a third of the budget before any inference happens.
+
+Two mitigations, both cheap: **serialise to a `.sentis` binary in StreamingAssets** so startup skips graph re-parsing, and **run a warm-up inference on an earlier screen** — while the user is framing the shot or picking from their library — so the kernels are compiled before they press the button.
+
+### With a hard ceiling, p99 is the number, not p50
+
+A 10-second commitment is only met if it's met almost always. That reframes the on-device-versus-server choice:
+
+- **On-device latency is predictable.** The distribution is tight; the main tail risk is thermal throttling on a hot device.
+- **Network paths have long tails.** Upload of a 1–3 MB photo on a weak connection, an API cold start, a rate-limit retry — any of these can turn a 4-second p50 into a 15-second p99.
+
+If you go server-side, you need an explicit timeout and a fallback plan for the case where the ceiling is about to be breached. If you go on-device, you mostly don't. **This is a stronger argument for on-device than the privacy one is convenient** — and it's the one that survives regardless of how the legal analysis in §6 lands.
+
+### What to do with the surplus
+
+The on-device pipeline leaves ~8 seconds unused. Don't bank it — spend it, in this order:
+
+1. **Native-resolution segmentation** rather than the model's 256×256 default. Direct gain on both colour attributes.
+2. **Test-time augmentation** on the categorical attributes: several crops plus a horizontal flip, averaged. Reliable accuracy for pure compute.
+3. **A heavier parser** if licence allows — a SegFormer-class model is entirely affordable here.
+4. **Quality gating and a retry prompt** for the library-photo cases in §5b, which costs almost nothing and prevents the worst failures.
+
+And still return early when you're done. A 10-second ceiling is permission, not a target.
+
 ## 4. Tier 2 — self-hosted (EC2 / GPU hire)
 
 **This tier is more attractive than the stated preference order implies, and the wait-state is why.** A round-trip to your own server costs perhaps a second on a decent connection — invisible inside a progress state the user is already watching. The UX objection to server-side processing largely evaporates when nothing is real-time.
@@ -120,9 +219,9 @@ The real constraints in this design are **app download size** and **licence**, n
 What it buys over on-device:
 
 - **No app-size cost at all.** The 15.6 MB segmenter question below stops mattering.
-- **Ship model updates without an app release.** Significant when the `hair_type` classifier will need several iterations to get right.
+- **Ship model updates without an app release.** Significant when the `hair_style` classifier will need several iterations to get right.
 - **No device fragmentation.** One known hardware target instead of the whole Android range.
-- **Arbitrary model size** — including the VLM option in §7 that solves `hair_type` outright.
+- **Arbitrary model size** — including the VLM option in §7 that solves `hair_style` outright.
 
 What it costs: **you are now processing and transmitting face images on your own infrastructure**, which brings the §6 obligations fully into play — consent flow, retention policy, regional data handling, and a much larger BIPA/GDPR surface. That is the whole trade. On-device is legally simpler; server-side is technically better.
 
@@ -194,34 +293,38 @@ Tempting, because one model would produce the whole JSON including open-vocabula
 
 The small-VLM landscape has moved fast: **SmolVLM-256M** runs under 1 GB of memory ([SmolVLM paper](https://arxiv.org/html/2504.05299v1)); **Moondream2** pairs SigLIP vision features with Phi-1.5 at 1.8B params and targets edge/mobile; Apple's **FastVLM** optimises the vision encoder specifically for on-device latency; Google's on-device Gemma tiers ship with native structured-JSON output. A 1B-class model is demonstrably feasible on a 4 GB iPhone 13.
 
-**In a single-shot wait-state flow, this is a genuine contender** — I had initially dismissed it on latency grounds, and that reasoning does not survive the operating conditions. A multi-second inference is fine when the user is watching a progress bar. The remaining objections are real but narrower:
+**With the 10-second ceiling known, this is out** — and I should be explicit that this reverses my previous answer twice. I first dismissed it on latency grounds assuming a real-time budget; when the wait-state was clarified I called it a genuine contender; the measured numbers in §3b now rule it out again, for a reason neither earlier pass had: **the best measured 3B-class VLM on flagship Android hardware takes ~21 s, and ~14 s of that is the vision stage, which prompt engineering cannot shrink.**
 
-- **Download size.** A 1–3B VLM is roughly 1–2 GB quantised, against ~20 MB for the specialist pipeline. That likely means an on-demand download after install rather than a bundled asset, plus the UX of a first-run wait.
-- **Device fragmentation.** A 1B-class model is demonstrably fine on a 4 GB iPhone 13, but the low end of the Android range will be slow or will OOM. You would need a capability gate and a server fallback — which is two code paths, not one.
-- **Unity plumbing.** Sentis targets CNN-scale graphs; a transformer decoder with a KV cache is off the beaten path and there are no published Sentis VLM benchmarks. Realistically you'd ship llama.cpp, MLC or ExecuTorch as a native plugin — a real per-platform maintenance commitment.
+The other objections stand and compound:
 
-**Where the VLM decisively wins is `hair_type`.** It handles open-vocabulary description natively — `"long pony tail"` needs no taxonomy, no labelled dataset, and no licence negotiation. Against §2, that is not a small thing: it routes around the single hardest blocker in this entire note.
+- **Download size.** A 1–3B VLM is roughly 1–2 GB quantised, against ~20 MB for the specialist pipeline. That means an on-demand download after install, plus a first-run wait.
+- **Device fragmentation.** Even if a flagship could be coaxed under 10 s, the low end of the Android range will be several times slower or will OOM. You'd need a capability gate *and* a server fallback — two code paths. And if you must build the server path anyway, the on-device VLM has bought you nothing.
+- **Unity plumbing.** Sentis targets CNN-scale graphs; a transformer decoder with a KV cache is off the beaten path with no published Sentis benchmarks. You'd ship llama.cpp, MLC or ExecuTorch as a native plugin — real per-platform maintenance for a path you've just established needs a fallback regardless.
 
-So there are three coherent architectures, and **the `hair_type` requirement is what chooses between them**:
+Revisit this if you move the ceiling well past 20 s, or when a framework lands that actually uses the NPU for the vision encoder — §3b notes the GPU sat at 0% throughout the published runs, so the headroom exists and is simply unclaimed.
 
-| Architecture | `hair_type` solved by | Download | Privacy | Main cost |
+**Where the VLM decisively wins is `hair_style`.** It handles open-vocabulary description natively — `"long pony tail"` needs no taxonomy, no labelled dataset, and no licence negotiation. Against §2, that is not a small thing: it routes around the single hardest blocker in this entire note.
+
+That leaves **two** viable architectures rather than three, with **the `hair_style` requirement choosing between them**:
+
+| Architecture | `hair_style` solved by | Download | Privacy | Main cost |
 |---|---|---|---|---|
 | **Specialist, on-device** | Classifier you train yourself | ~20 MB | Best — nothing leaves the device | You must source or generate licensed training data |
-| **VLM, on-device** | Free, open-vocabulary | 1–2 GB | Best | Native plugin; device fragmentation; capability gate |
+| ~~**VLM, on-device**~~ | Free, open-vocabulary | 1–2 GB | Best | **Ruled out — ~21 s measured vs. a 10 s ceiling (§3b)** |
 | **VLM, server-side** | Free, open-vocabulary | None | Weakest — you hold face images | Full §6 data-handling obligations; per-image cost |
 
-A fourth option, and probably the best-value one: **use a VLM server-side at build time as a labelling engine.** Bulk-label your own consented or synthetic training images with hairstyle and accessory tags, then distil into the small on-device classifier. You get open-vocabulary richness in the *labels* and specialist-model economics at *runtime*, with no user face data ever hitting a server.
+**And a third option, which the 10-second ceiling makes the clear best value: use a VLM server-side at build time as a labelling engine.** Bulk-label your own consented or synthetic training images with hairstyle and accessory tags, then distil into the small on-device classifier. You get open-vocabulary richness in the *labels* and specialist-model economics at *runtime* — a ~1–2 s on-device inference with 80% of the budget to spare, no 1–2 GB download, no device gate, no face data leaving the handset, and no per-image cost. **This is the recommendation.** The VLM's open-vocabulary strength is exactly what you need for `hair_style`, and it turns out you need it at training time, not at inference time.
 
 ---
 
 ## 8. Recommendation
 
-**Build the §3 pipeline on Unity Sentis, and decide the `hair_type` architecture separately.** Concretely:
+**Build the §3 pipeline on Unity Sentis, and decide the `hair_style` architecture separately.** Concretely:
 
 1. **Prototype now, unblocked** — wire BlazeFace (`unity/inference-engine-blaze-face`, Apache-2.0) plus the MediaPipe Multi-class Selfie Segmenter into Unity, and implement colour quantisation for `hair_colour` and `skin_colour`. Both assets are commercially licensed. This validates the hardest engineering risk (Unity inference plumbing) using only clean IP, and delivers two of the six attributes outright.
-2. **Make the `hair_type` architecture decision explicitly, using the table in §7.** It is the fork in the road, and the other five attributes don't much care which way you go. Don't let it get decided implicitly by whichever prototype happens to work first.
-3. **In parallel, resolve the data question for the remaining attributes** — licensing (InsightFace / K-Hairstyle enquiries), self-collection with consent, or synthetic generation. If the app's 3D side already has head assets, synthetic is the strong play: render heads with known glasses/hat/hairstyle labels for perfect ground truth at zero marginal cost.
-4. **Define the `hair_type` taxonomy before training anything** (if you go the classifier route). `"long pony tail"` must become a finite label set the app can consume. Decompose into orthogonal axes — length, texture, tied/untied, fringe — rather than one flat class list. Fewer classes, more combinations, easier labelling. K-Hairstyle's schema (§1) is a good model to copy.
+2. **Make the `hair_style` architecture decision explicitly, using the table in §7.** It is the fork in the road, and the other five attributes don't much care which way you go. Don't let it get decided implicitly by whichever prototype happens to work first.
+3. **In parallel, resolve the data question for the remaining attributes** — licensing (InsightFace, K-Hairstyle enquiries), self-collection with consent, or synthetic generation. **Synthetic is now the evidenced play, not just the plausible one**: Hairmony hit 87.6% on this exact task trained on nothing but renders (§2b). If the app's 3D side already has head assets, you are unusually well placed to reproduce that — render heads with known glasses, hat, length and gathering labels for perfect ground truth at zero marginal cost.
+4. **Adopt Hairmony's taxonomy rather than inventing one** (§2b). This step was previously the biggest open design problem and is now largely answered: `Gathered` × `Length` × `Hair Type` × `Strand Styling` gives you `"long pony tail"` and everything adjacent, with an expert-designed, fairness-audited vocabulary and an explicit objectivity rule. Keep hair *type* (curl geometry) as a separate field from hair *style* (arrangement) — the taxonomy does, and so should your schema. Confirm the taxonomy-vs-data licence distinction with counsel before relying on it.
 5. **Spend the wait-state on accuracy** — native-resolution segmentation, no speed-driven quantisation, test-time augmentation on the hard attributes. These are free wins in this flow and you should take all of them.
 6. **Treat `eye_colour` as best-effort** with a coarse palette and a confidence threshold, plus a UI fallback letting the user correct it.
 7. **Ship a "confirm your details" screen regardless.** Every attribute above has a real error rate. Letting the user adjust the inferred values converts model error from a correctness problem into a UX detail — and it is a clean consent moment for the privacy story. In a flow where the user is already waiting for a result, a review step costs you almost nothing.
@@ -239,9 +342,13 @@ A fourth option, and probably the best-value one: **use a VLM server-side at bui
 
 **Still open:**
 
-- **K-Hairstyle and Hairstyle30k licence terms.** The K-Hairstyle project page documents the schema but states no licence; access appears to be by request. Both are research releases and need an explicit written answer before commercial use. This is the single highest-value unknown remaining, because K-Hairstyle is otherwise a near-perfect fit for `hair_type`.
+- **Whether Hairmony's *taxonomy* can be adopted commercially while its *data* cannot** (§2b). R-UDA is unambiguous that the datasets and models trained on them are barred; it is silent on the classification scheme as such, and schemes are generally not copyrightable. **This is now the highest-value open question in the note** — a favourable answer removes most of the `hair_style` design risk. Needs counsel, and possibly just an email to the authors.
+- **K-Hairstyle and Hairstyle30k licence terms** — still unstated, access by request. Lower priority now that Hairmony is the better reference for this use case.
 - **Face++ full `return_attributes` list.** Still not read from the primary source — `console.faceplusplus.com` serves a client-rendered loading shell that the fetcher can't execute, and the RapidAPI mirror returned no body. §5 reflects their marketing page plus SDK examples, which may lag the API. Face++ is a poor fit regardless, so this is low priority.
-- **On-device VLM feasibility on your actual device floor.** Whether a 1–3B VLM is viable depends entirely on the low end of your supported range, and that's a measurement, not a literature question. Needed before the §7 architecture fork can be decided on evidence. (Raw latency is *not* a concern given the wait-state; memory ceilings and OOM behaviour on low-end Android are.)
+- ~~On-device VLM feasibility~~ — **effectively closed by §3b.** ~21 s measured for the fastest 3B-class configuration against a 10 s ceiling, with the cost in the vision stage. Only worth revisiting for a sub-1B model with a small vision tower, or once NPU offload lands.
+- **Actual end-to-end timing of the on-device pipeline.** The ~1–2 s in §3b is modelled, not measured. It's an order of magnitude inside the ceiling so the conclusion is safe, but you want the real number before committing to how much test-time augmentation the budget affords.
+- **Cold-start cost under Sentis on your device floor.** Unity documents "several seconds" for buffer allocation and kernel compilation, unquantified. It's the one on-device cost that could plausibly threaten a 10 s ceiling, and the mitigation (warm up on an earlier screen) needs to be designed in rather than retrofitted.
+- **p99, not p50, if you go server-side.** Upload time on weak connections is the tail risk, and it needs measuring against the ceiling with a timeout and fallback designed for the breach case.
 - **Accuracy cost of quantising** the multiclass segmenter to Float16/Uint8 at Sentis import — unmeasured. Relevant only to app download size now, not to speed, so the threshold for accepting it should be higher than it would be in a real-time design.
 - **Real-world quality on library photos**, as distinct from fresh captures (§5b). Untested, and likely the larger source of user-visible error.
 - **Whether Anthropic/OpenAI would permit** consented, user-initiated selfie attribute extraction for avatar generation is a judgement call on policy text, not a documented carve-out. Worth an explicit vendor enquiry if Tier 3 stays in play.
