@@ -1,0 +1,139 @@
+# LEGO build rules as agent constraints — legality, technique, and what a machine can actually check
+
+Research note, 2026-08-21. Compiled for the purpose of **giving an agent a rule corpus while it constructs models in LDraw/MPD**.
+
+**Provenance of claims.** Three parallel research streams, each working from primary sources: the LEGO Group's own material (§1), measured part geometry (§2), and the ratified LDraw specifications (§3). The complete official LDraw Parts Library (`complete.zip`, Parts Update 2026-07) and the LDCad shadow library were **downloaded and measured** rather than quoted — the majority of numeric claims in the reference sections are reproducible from named `.dat` files. Where a claim is community measurement, anecdote or folklore, it is tiered as such and says so.
+
+**This note is the front door.** The detail lives in three reference companions:
+
+| Companion | Contains |
+|---|---|
+| [`-ref-legality.md`](2026-08-21-lego-build-rules-ref-legality.md) | `L-01`…`L-12` (Berard 2006), `B-01`…`B-10` (BrickLink Designer Program, current), `D-*` discouraged, `G-*` legal-but-mis-listed, `C-*` changed-over-time, contested/folklore |
+| [`-ref-technique.md`](2026-08-21-lego-build-rules-ref-technique.md) | ~260 numbered technique rules: dimensional identities, SNOT, angles, circles, structural/load, mosaic |
+| [`-ref-ldraw.md`](2026-08-21-lego-build-rules-ref-ldraw.md) | Format spec, coordinate/origin conventions, connectivity metadata, emitter gotchas, validation tooling |
+
+A machine-readable extract is at [`lego-build-rules.yaml`](lego-build-rules.yaml).
+
+---
+
+## TL;DR
+
+1. **Collision detection is the wrong primitive, and this is the single most important finding.** Of roughly twenty encodable rules traceable to primary sources, **exactly one is a mesh-interference test.** The rules are overwhelmingly *graph-theoretic* — about what connects to what, how many studs enter a hole, whether the model is one connected component. An agent gated on collision alone enforces about 5% of the corpus while feeling thorough.
+
+2. **The three cheapest wins are also the exact failure modes a naive generator produces.** No floating parts (one connected component), no stud in a Technic pinhole, no fractional yaw on single-stud parts. All three are current first-party BrickLink Designer Program rules, all three are trivial over an MPD file. Do these before anything clever.
+
+3. **The canonical source is obsolete and its author says so.** Jamie Berard, 2017, on the 2006 *Stressing the Elements* deck: *"That is not the version we use for inhouse presentations anymore."* The current in-house rule set has never been published. Berard has also disowned the word "illegal", preferring "non-standard". **Any corpus built on the 2006 deck is stale in unknown places** — treat it as historically authoritative, and prefer the BDP guidelines for anything current.
+
+4. **The best current first-party rule list is not the famous one.** The BrickLink Designer Program guidelines carry a live, enforced section titled *"Stressing the elements"* — a deliberate echo of Berard — that community lists almost never cite. It is stricter than the 2006 deck in at least one place: it bans studs in Technic pinholes outright, where Berard called that legal-but-not-recommended.
+
+5. **Four premises in the popular account are simply false.** LEGO Ideas does *not* reject projects for illegal techniques — its help page says all building techniques are allowed. LDD never had a collision-detection toggle. BrickLink Studio does not detect illegal techniques (zero hits for "illegal" or "stress" across all 123 help articles; its snapping is a placement assist, not a validator). And the famous 0.01 mm tolerance is wrong — LEGO's published figure is 0.005 mm.
+
+6. **No existing tool validates any of this.** Whatever checking you want, you are writing it. The good news is that the layer that catches most real defects is about a day's work (§4).
+
+7. **Berard's deck is a four-tier vocabulary, not a binary** — `Legal` / `Possibly Legal...But Not Recommended` / `Illegal` / `Definitely Illegal!`, plus explicit `Legal back then...Illegal now` and `Illegal builds that made it to market` categories. Every community list flattens this. The middle tiers are where most interesting technique lives, so flattening them costs the agent its best moves.
+
+8. **LDraw idealises away the very deviations the rules exist to protect.** Several hard-illegal cases have *zero nominal clearance* in LDraw and will report no interference. The headlight brick's side stud sits at exactly the 20 LDU envelope. These must be encoded as part-identity + relative-transform predicates, never as geometry tests.
+
+9. **Slope part names are systematically wrong and will inject real error.** The part called "33°" is actually 26.5651° = atan(½) — a 6.4° discrepancy, roughly 3 LDU per stud of run. An agent reasoning from part names rather than measured geometry will build things that do not close.
+
+10. **Only N = 4 closes exactly.** The stud lattice maps onto itself only at 0°, 90°, 180°, 270°, so a four-fold rosette is the sole exactly-closing radial arrangement. Angular closure and lattice closure are *different tests* and a 16-gon of click hinges passes the first while failing the second.
+
+---
+
+## 1. The severity model to give the agent
+
+Berard's four tiers plus BDP's current rules collapse cleanly into **three** for an agent, and the collapse is worth doing explicitly because the failure modes differ:
+
+| Tier | Meaning | Agent behaviour |
+|---|---|---|
+| **HARD** | Stresses or damages an element; would not ship in a set | Never emit. Reject and re-plan. |
+| **DISCOURAGED** | Works, but out-of-system, fragile, or degrades over time | Emit only with a stated reason; surface it in output. |
+| **STYLE** | Craft convention, no formal definition | Advisory heuristic; never a gate. |
+
+Two things this buys you. First, `DISCOURAGED` is where the useful techniques live — collapsing it into `HARD` makes the agent timid and blocks legitimate builds. Second, `STYLE` rules have no ground truth, so gating on them produces confident nonsense.
+
+**Do not encode the folklore.** Around eight widely-repeated "rules" — roller skates, log bricks, certain old clips — trace back only to a single author openly speculating. They are listed in the legality companion as folklore, not laundered into the corpus. Recognise that a rules corpus with stale or invented rules is *worse than none*, because the agent cannot tell which is which.
+
+---
+
+## 2. The conflict the two streams surfaced, and how to resolve it
+
+The legality stream recommends **inflating every stud by 0.35 LDU before interference testing**, to catch stressed connections that have zero nominal clearance in LDraw. Two primary sources twenty years apart support the underlying fact: Berard quantifies the LEGO wordmark as adding 0.14 mm to every stud, and BDP today warns against interfering with the stud logo. LEGO itself shipped a violation of this in 11376 Ford Model T (2026).
+
+The LDraw stream points out, correctly, that **correctly-connected LEGO parts are supposed to interpenetrate.** A stud of radius 6 mates exactly with a tube bore of radius 6. Real parts connect through stress-based plastic deformation, so there is **no zero-tolerance geometric ground truth** — every implementer who has tried has landed on a tuned tolerance with an accepted error trade-off.
+
+Both are right, and the resolution is a scoping rule:
+
+> **Clearance testing is only meaningful between surfaces that are not a declared connection.** Inflate studs and test interference *after* excluding every male↔female hotspot pair that the connectivity data says is mated. Globally, inflation produces false positives on every legal stack; scoped to non-mating surfaces, it catches the class of violation LDraw otherwise hides.
+
+This is why the connectivity extractor (§4, L4) is a prerequisite for the stud-inflation check rather than an independent nicety.
+
+---
+
+## 3. What the agent needs that does not exist
+
+Two hard dependencies, neither of them available off the shelf:
+
+**A connectivity hotspot extractor.** The LDCad shadow library (CC BY-SA 4.0) is the only open connectivity data. Naive file counting suggests 14% coverage; walking each part's full reference closure gives **81.1% effective coverage**, of which only 15.3% comes from a part's own shadow file. A 2×4 brick has no shadow file at all — its data is entirely inherited. **Skip the recursive walk and you get a fifth of the data.** The remaining ~19% must be treated as *unknown* connectivity, not *no* connectivity, or a validator will reject valid models. No open-source parser of `!LDCAD SNAP_*` metas exists in any language; this is ~300 lines done properly and unlocks every structural predicate.
+
+**A part-property database.** Insertion stops, bore classes, polycarbonate-vs-ABS materials, tile-vs-plate class, click-hinge families and their axes, clip mould variants. The LDraw library carries none of it. Several hard-illegal rules are unenforceable without it. Budget for authoring it, or accept those rules stay advisory.
+
+Note the licence asymmetry: the parts library is CC BY 4.0 but the shadow library is **CC BY-SA 4.0**, and ShareAlike propagates into anything derived from it.
+
+---
+
+## 4. The validation stack, layered by cost
+
+| Layer | Checks | Availability |
+|---|---|---|
+| **L0** Syntax | Line types, token counts, CRLF, numeric fields | LDView headless today |
+| **L1** References | Parts resolve, no cycles, no duplicate `0 FILE`, no `~Moved to` aliases | LDView today |
+| **L2** Matrix sanity | `det(R) = +1`, `R·Rᵀ = I`, no singular/skewed transforms | LDView + ~20 lines |
+| **L3** Grid conformance | X/Z multiples of 10, Y multiples of 4 and ≤ 0, integer coordinates | **~150 lines, write it** |
+| **L4** Connectivity | Every part supported, engagement counts, no floating components | **Needs the extractor** |
+| **L5** Legality | The `L-*`/`B-*` predicates, mostly graph-theoretic | **Needs L4 + part-property DB** |
+| **L6** Structure | "Will it hold together?" | **Unsolved in the open** |
+
+**Build L0–L3 first.** That combination catches essentially every mistake an LLM actually makes when emitting LDraw — matrix transposition, Y-sign, colour 16 at the top level, missing `0 FILE`, invented part numbers, off-grid placement — and it is roughly a day's work with no dependencies beyond the parts library. It will catch more real defects than anything further up the stack.
+
+L6 is genuinely not answerable. The nearest existing things are BrickLink Studio's proprietary stability check and the BrickGPT/StableLego static-equilibrium models, which operate on a 20×20×20 grid with 8 brick types. Generalising to arbitrary LDraw is unsolved.
+
+---
+
+## 5. The emitter gotchas that matter most
+
+These are the mistakes an LLM makes, ordered by frequency. Full tables in the LDraw companion, §10.
+
+- **Matrix transposition.** `(a,b,c)` is the **first row**, not the image of the X axis. three.js and glm store column-major; LDraw wants row-major. Symmetric parts look fine when transposed, which is why the bug survives review — test with an asymmetric part.
+- **Y sign.** −Y is up. Stack by *decreasing* Y. A brick resting on the ground has `origin_y = −24`, not 0, because the origin sits on the part's top face. Do not add stud height when stacking; brick-on-brick is exactly 24 LDU.
+- **Colour 16 at the top level.** It means "inherit from my caller"; a top-level model has no caller and renders mustard. Models use concrete codes, parts use 16, and colour 24 never appears on a type-1 line.
+- **Origin assumptions.** The spec's "centred on the topmost stud group" holds far less often than it reads: measured over a 250-part sample, only 24% have the standard studs-up signature, **43% have their origin off the footprint centre**, and 60% carry non-integer coordinates. Placement must be per-part table-driven, not computed from footprint.
+
+**Packaging trap worth stating outright:** the obvious package names are decoys. `npm i ldraw` installs 2015 code because the `latest` tag was never moved; `cargo add weldr` gets a 2020 crate with no BFC support; PyPI `ldraw` is a 2008 write-only generator by a different author than the one everyone means. The healthy implementations are all git-only and unversioned. Verify publish dates before adopting anything in this ecosystem.
+
+---
+
+## 6. Honest limits
+
+- **The current LEGO rule set is unpublished.** Everything in the `L-*` series carries that asterisk.
+- **There is no first-party source for any millimetre dimension of a LEGO element.** This is a firm negative finding, not a gap in searching. Every mm figure in circulation is LDraw convention or community measurement. The LDU values are authoritative for your files; the mm values are authoritative for nothing.
+- **LDraw carries none of the real tolerances.** An agent validating only against LDraw coordinates will emit physically illegal models — this is structural, not a bug to fix.
+- **Clutch power has no published method or threshold.** The load figures in the technique companion are community measurement, tiered accordingly.
+- **One live conflict remains unresolved:** the cheese-slope square sign, where LDraw geometry (0.4 under square) disagrees with measured plastic (over square).
+- **Three research leads were dead ends** and are recorded so nobody spends budget on them again: the "ULABTG circle table" does not exist, and neither Holly Webb nor Yoshiya Nakamura returns anything indexed.
+- **`education.lego.com` was not swept.**
+
+---
+
+## 7. Recommended next steps
+
+| # | Action | Why |
+|---|---|---|
+| 1 | Build the **L0–L3 gate** (~150 lines + headless LDView) | Highest defect catch per hour of work; no dependencies |
+| 2 | Give the agent the **three-tier severity model** (§1), not a flat rule list | Flattening makes it timid and blocks legal technique |
+| 3 | Write the **shadow-library hotspot extractor** (~300 lines, recursive) | Unlocks L4 and L5; does not exist in any language |
+| 4 | Feed **measured angles, never part names** | "33°" is 26.5651°; names inject ~3 LDU per stud |
+| 5 | Author the **part-property database** incrementally | Gates several hard-illegal rules; nothing else provides it |
+| 6 | Re-source the corpus if LEGO publishes a current rule set | The 2006 deck is stale by its author's own statement |
+
+**Connection to existing work in this repo.** The Brickie pipeline renders from `.mpd` with LDraw colour codes ([HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md)), so this corpus shares units and part vocabulary with it directly. The `LDConfig.ldr` colour analysis in that note and the geometry work here resolve against the same official library.
