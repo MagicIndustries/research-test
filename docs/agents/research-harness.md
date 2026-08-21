@@ -81,7 +81,7 @@ Writing-stage skills (for stacks):
 
 | Token | Source | Note |
 |---|---|---|
-| `spartan-article-writing` | Spartan package v1.27.0 | Long-form articles/guides |
+| `spartan-article-writing` | Spartan package v1.27.0 | Long-form articles/guides — **default writing stage** for deep-research stacks (unanimous three-way verdict, 2026-07-19) |
 | `pocock-writing-fragments` | mattpocock/skills @9603c1c | Explore: mine raw fragments |
 | `pocock-writing-beats` | mattpocock/skills @9603c1c | Exploit: assemble beats |
 | `pocock-writing-shape` | mattpocock/skills @9603c1c | Exploit: shape into an article |
