@@ -197,9 +197,12 @@ described. Six conventions, in descending order of how hard they look.
 
 ### Every build is strictly orthogonal
 
-**100% of placements in every category are axis-aligned** (99% for
-HeadAccessory, a single exception). Not one part in 6,748 is set at an oblique
-angle. Whatever else a generated part does, it does not tilt.
+**99.8% of placements are axis-aligned** — 15 oblique placements out of 6,748,
+confined to 4 templates of 199 (`pants_triangle_knees`, `head_lips_a`,
+`hair_high_back_bun_small`, `hat_long_brim_floral`). Per-category rounding in
+the first pass of this analysis reported it as a flat 100%; building the
+checker and running it over the corpus is what turned up the four. Oblique
+placement is a rare, deliberate exception, not part of the vocabulary.
 
 ### Every build is mirror-symmetric about X=0
 
