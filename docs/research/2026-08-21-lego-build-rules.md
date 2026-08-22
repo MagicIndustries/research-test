@@ -303,3 +303,40 @@ across.
 HARD fell from 30 of 46 to 26, and every rule verdict over a 244-model sample
 was unchanged. That is the test of a reclassification: the corpus says something
 different about itself while saying exactly the same thing about the models.
+
+**Building the exemplars is what catches a misread rule.** Five of the
+hand-authored pairs turned out to misrepresent their rules, and two of those
+were misread *statements* rather than bad geometry — errors that survived
+research, review and implementation, and only surfaced when someone looked at a
+picture of what the rule was supposed to forbid.
+
+`L-04` was recorded as "every Technic pin must be seated in its detent". The
+source says nothing about axial position: it is about **which end of a half pin
+is used** — the short stub is too short to engage the bore, so it must not be
+the end that goes in. The rule was renamed from `PIN_NOT_IN_CLICK` to
+`NO_HALF_PIN_SHORT_END_IN_HOLE`, because **the old name asserted the
+misreading**, and a name is the first thing a consuming agent reads. A wrong
+name is worse than a vague one.
+
+`L-01` was recorded as "System side-studs and Technic holes are not co-planar",
+which is the dimensional fact underneath the rule but not the rule: the
+prohibition is against pushing a SNOT brick's side stud into a Technic bore.
+Its illegal exemplar renders *as though it fitted*, because the ~0.30 LDU
+offset is absent from LDraw — the clearest case in the corpus of a rule that
+must be stated because it cannot be seen.
+
+**A legal twin has to be a near twin.** The convention of pairing every illegal
+exemplar with a legal one is wrong where no legal version of the same
+connection exists. `B-01` earns its pair (stud on a stud against stud in a
+bore), as do `L-04` (full pin against half-pin short end in the *same* bore) and
+`T-08` (a plate swapped for a tile in the *same* sandwich) — each changes
+exactly one thing. `L-01` forbids one connection with no legal way to make it,
+so its "legal" twin could only be a different build; it now ships without one.
+Prefer no twin to a meaningless one.
+
+**And a correct model can still be a useless picture.** Four of the five
+corrections needed a camera change as much as a geometry change: the engaging
+end of a pin is inside the brick once assembled, and the two elements of a
+sandwich are invisible once stacked. Exemplars for those now carry a companion
+panel showing the parts before assembly. Geometry that verifies is not the same
+as geometry that demonstrates.
