@@ -137,3 +137,34 @@ These are the mistakes an LLM makes, ordered by frequency. Full tables in the LD
 | 6 | Re-source the corpus if LEGO publishes a current rule set | The 2006 deck is stale by its author's own statement |
 
 **Connection to existing work in this repo.** The Brickie pipeline renders from `.mpd` with LDraw colour codes ([HANDOVER-brickie-generation-pipeline.md](HANDOVER-brickie-generation-pipeline.md)), so this corpus shares units and part vocabulary with it directly. The `LDConfig.ldr` colour analysis in that note and the geometry work here resolve against the same official library.
+
+---
+
+## 8. Addendum, 2026-08-22 — what building the verifier proved and disproved
+
+The corpus above was assembled from sources. It has since been **implemented and measured against 1,464 real released LEGO sets** from the Official Model Repository, in the `ldraw-verify` repository. That exercise corrected this note in ways worth recording, because several claims here were confidently wrong.
+
+**The headline finding survived and strengthened.** Collision detection really is the wrong primitive: the rules that carried their weight in practice were graph-theoretic and transform-level. Nothing in implementation argued for a geometry-first design.
+
+**But most rules, as originally tiered, rejected almost every valid model.** On first measurement, six of ten implemented rules fired on essentially 100% of real released sets. The tool would have rejected virtually every legitimate build. The cause was consistent and is the most useful lesson here:
+
+> **Several rules encoded a generator *convention* — how a well-behaved emitter ought to write a file — stated as though it were a property every valid model must have.**
+
+Three concrete corrections:
+
+- **"−Y is up, so a model built from a ground plane has y ≤ 0 throughout" is not a validity property.** A real model's origin is arbitrary. Measured: the `y > 0` clause fired on 11 of 24 real sets. Removed.
+- **The grid quanta were wrong.** `y mod 4` and `x/z mod 10` reject mainstream first-party construction — a Technic hole axis sits at 10 LDU, which is not a multiple of 4, and ordinary SNOT placements land off the 10 LDU lattice constantly. The true invariant is the gcd of the system's own constants, **2 LDU**. Both rules were demoted to `DISCOURAGED` and re-sourced as derived (`S`), not first-party (`P1`).
+- **Referencing a `~Moved to` alias is a cataloguing nit, not a build-legality defect.** Real sets do it in 96% of cases. Demoted.
+
+**A rule cannot detect what this note implied it could.** `E-01` was described as catching a transposed (row-major/column-major) matrix — the commonest generator bug. It cannot, at any tolerance: for a rotation R, Rᵀ = R⁻¹ is itself orthonormal with determinant +1, so a transposed placement is a perfectly well-formed rotation, just the wrong one. Detecting it requires knowing the intended geometry, which a verifier reading one file does not have. The rule was renamed `MATRIX_WELL_FORMED` and the limitation recorded under `not_checkable`.
+
+**Two research claims were independently reproduced from scratch**, which is the strongest evidence in this note:
+
+- Shadow-library connectivity coverage: **15.3% reading each part's own file, 80.1% walking the full reference closure** — matching §3's cited 15.3%/81.1% almost exactly, derived independently.
+- A 2×4 brick resolves to **8 stud and 8 anti-stud connection points** despite having no shadow file of its own, proving inheritance works.
+
+**The oracle is weaker than §6.1 of the design claimed, for two reasons found in use.** First, the OMR mixes official-set reproductions with MOCs and alternative builds, and a fan design may legitimately contain illegal techniques — so a hit there is not automatically a false positive. Second, and more subtly, **the corpus spans decades while the rules are current**: `B-01`'s ban on studs in Technic pinholes is enforced by the BrickLink Designer Program today but was permitted when older sets shipped, so a hit on a vintage set may be a correct detection. Even a filtered subset is a *fan reproduction*, not LEGO's own CAD. Treat a residual rate as "false positive **or** reproduction artefact **or** period difference", never as ground truth.
+
+**What the tool cannot do, measured rather than assumed.** It exits nonzero on ~97% of real sets, almost all at the advisory tier; gate on exit 1, which fires on ~25%. `B-06` renders a verdict on only a small fraction of real models, because the ~19% connectivity gap is permanent — the rest are honestly `unknown`. Full figures, sample sizes and per-rule notes live in the corpus file beside each rule.
+
+**Rules changed over time is not a footnote — it is a design constraint.** §4's `C-*` series recorded it; implementation showed it determines whether a measured rate means anything at all.
