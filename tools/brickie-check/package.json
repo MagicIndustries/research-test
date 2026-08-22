@@ -1,0 +1,22 @@
+{
+  "name": "brickie-check",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Checks a brickie part against the conventions measured from the template corpus.",
+  "bin": {
+    "brickie-check": "dist/src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "check": "npm run build && node dist/src/cli.js"
+  },
+  "dependencies": {
+    "ldraw-verify": "file:/Users/tobytremayne/work/ldraw-verify"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
