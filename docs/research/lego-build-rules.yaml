@@ -62,7 +62,82 @@ rules:
     predicate: "count(connected_components) == 1"
     confidence: high
     priority: 1
-    note: "Trivial over an MPD and the single most common naive-generator failure."
+    note: >
+      Trivial over an MPD and the single most common naive-generator failure.
+      TASK 14: kept HARD, predicate unchanged; connectivity-layer completeness fixed
+      instead (src/connect/closure.ts, src/connect/graph.ts). Root cause of the corpus
+      over-firing was (c) incomplete connectivity data, not a wrong predicate: Technic
+      pin/axle/bush connectors (e.g. 3713.dat "Technic Bush with Two Flanges", which has
+      no shadow file of its own) are reached through a real-geometry subfile chain that
+      can carry genuine non-uniform scale from a shared connector-hole primitive reused
+      at a different size -- confirmed directly against the shadow library (determinant3
+      == 20 on the composed transform). That corrupts the hotspot's axis
+      (metasToHotspots' applyDir is a plain linear map, not corrected for non-uniform
+      scale), which can only make hotspotsCompatible's axis check reject a pairing that
+      should have matched, never fabricate one -- so it can only under-report
+      components, never over-report. Such placements are now tagged (`axisUnreliable`)
+      and feed a new `unreliableAxisPlacements` list, handled exactly like the existing
+      `degradedGridPlacements`: downgrades an otherwise-failing component count to
+      `unknown`, never touches a pass, never manufactures a fail. Pre-fix measured rate:
+      100% of applicable real models (30-model sample, finding-count framing); see the
+      Task 14 report for the post-fix per-model rate.
+      FINAL FIX WAVE: the rule was structurally undeliverable and is now not. It gated on
+      connectivity coverage == 100% before judging the component count, and the design
+      states the ~19% coverage gap is PERMANENT -- so on 24 of 24 real OMR models it
+      returned `unknown` (coverage 74-96%) and the only input that ever reached a verdict
+      was a two-brick test fixture. Reformulated on the asymmetry the whole layer already
+      rests on (missing data can only HIDE a connection, never invent one), in three
+      clauses -- two sound outright, one sound under a stated assumption: (1) ONE
+      component is a `pass` at any coverage, since a hidden edge can only merge
+      components; (2) with no data gap anywhere, the count is exact and >1 is a genuine
+      `fail`, ASSUMING every real connection the pairing logic could see would in fact
+      have been paired (see the VERIFICATION PASS note below -- this does not always
+      hold); (3) a component whose every placement has complete data AND no unpaired
+      connector cannot be the far end of a hidden connection, so it is provably separate
+      even when the rest of the model has gaps, GIVEN that its shadow data enumerates
+      every physical connector the part actually has (see the same note -- this also
+      does not always hold). Otherwise `unknown`, naming the components and the gap
+      rather than a coverage percentage. Measurement also found and fixed a real
+      completeness gap: a [slide=true] axle or pin mates anywhere ALONG its axis while
+      hotspot pairing only sees coincident positions, so an axle-plus-bush pair looked
+      like a sealed floating island -- both of B-06's only two `fail` verdicts on the
+      24-model sample (4519+32269 in 41999-1.mpd, 3707+4265b in 5571-1.mpd) were that,
+      and both were false positives. Sliding connectors now count as incomplete data.
+      Post-fix on that sample: 2/24 models reach a verdict (both `pass`), 0 false
+      positives, 22/24 `unknown`. STATED PLAINLY, per the brief's option (b) as well as
+      (a): clause 3 is rarely satisfied on a large real model, because any outward-facing
+      stud is a free connector, so B-06 still abstains on most real sets -- now for a
+      stated per-component reason rather than because a fifth of parts will never have
+      shadow data. Closing that gap needs a geometric bound on where a data-less part's
+      unmodelled connectors could reach, which is not implemented.
+      VERIFICATION PASS, three corrections.
+      (1) CLAUSE 2, ASSUMPTION NOT SOUNDNESS. The paragraph above originally called all
+      three clauses "sound" outright. Clause 2 is not: it assumes every real connection
+      this tool's pairing logic could see would in fact have been paired, and that
+      assumption fails whenever two real, differently-kinded connectors mate --
+      `hotspotsCompatible` (src/connect/graph.ts) requires both sides to share a `kind`,
+      stricter than LDCad's own pairing rules, and a model with complete data everywhere
+      plus one such kind-mismatched real connection would trip clause 2 into a false
+      `fail`. Currently LATENT, not live: every one of the 98 real OMR models sampled
+      while validating this rule had at least one data gap, so clause 2 has never
+      actually fired on real input -- but that is "not yet observed", not "cannot
+      happen". Restated as an assumption in both this note and the rule's own doc
+      comment (src/rules/l4-connectivity.ts).
+      (2) CLAUSE 3'S OWN UNSTATED ASSUMPTION. Clause 3 is sound only given that a
+      component's shadow data enumerates every physical connector the part actually
+      has. It does not always: a part whose clip or bar mount is simply absent from its
+      own shadow closure contributes no `SNAP_CLP` for the unpairable-kind check to see,
+      so that placement can read as "fully accounted" (no MODELLED hotspot left
+      unpaired) while carrying a real, physically present, entirely unmodelled
+      connector. This caveat previously went undisclosed; it is now stated alongside
+      clause 2's in the rule's own doc comment.
+      (3) MESSAGE ATTRIBUTION. When the sealed component clause 3 proves separate is
+      actually the model's own main body (fully enclosed, larger than everything else in
+      the model combined), the `fail` message and its locations used to name the main
+      body as the problem. Clause 3's proof is symmetric in which side it calls
+      "separate"; only the framing of which side is the anomaly needs to track size. The
+      rule now reports the smaller side as the floating part in that case, naming the
+      main body only as the proof, not as what to look at.
 
   - id: B-01
     name: NO_STUD_IN_PINHOLE
@@ -75,7 +150,31 @@ rules:
     confidence: high
     priority: 2
     supersedes: D-01
-    note: "Flat ban. Stricter than the 2006 deck, which called this legal-but-not-recommended."
+    note: >
+      Flat ban. Stricter than the 2006 deck, which called this legal-but-not-recommended.
+      TASK 14: kept HARD (per the coordinator's directive, this is a hard physical
+      constraint, not a housekeeping nit), predicate corrected, not weakened. Root cause
+      was (an implementation defect analogous to (b)): every real Technic-hole-class
+      part in `parts:` above carries BOTH a genuine through-hole (shadow library:
+      `SNAP_INCL [ref=connhole.dat]`, `caps=none`) AND an entirely separate, ordinary
+      blind anti-stud tube for normal top/bottom System stacking (`SNAP_CYL [caps=one]
+      [secs=S 6 4]`), at the *same* nominal 6 LDU radius -- matching on radius and
+      part-class alone (the original predicate's literal reading) therefore flagged
+      perfectly ordinary "plate stacked on a Technic brick" connections as a
+      stud-in-pinhole violation. Fix reads the shadow library's own `caps=` signal
+      (open-both-ends vs blind) off the female side of the edge specifically
+      (Edge.femaleCaps, src/connect/graph.ts) and only flags a confirmed `caps=none`
+      through-hole. A second, related bug in radius extraction (src/connect/hotspots.ts)
+      was fixed alongside it: a multi-segment `secs=` profile's radius was read from the
+      wrong segment (the last chamfer, not the actual bore), which could hide a genuine
+      through-hole from the radius filter entirely depending on hotspot scan order. A
+      third fix excludes a `[slide=true]` male connector (Edge.maleSlide): every real
+      Technic axle/pin checked also reports a stud-radius male SNAP_CYL hotspot, but
+      seating an axle/pin in a Technic hole is that hole's intended, ordinary use, not
+      a System stud violation -- `slide=true` is what every axle/pin carries and no
+      genuine System stud primitive does. Pre-fix measured rate: 89.18% of applicable
+      real models (30-model sample, finding-count framing); see the Task 14 report for
+      the post-fix per-model rate.
 
   - id: B-05
     name: NO_FRACTIONAL_ROTATION
@@ -86,6 +185,115 @@ rules:
     predicate: "for single-stud parts, yaw mod 90 == 0"
     confidence: high
     priority: 3
+    note: >
+      TASK 14: kept HARD, predicate corrected to match its own stated scope, not
+      weakened. Root cause (an implementation defect analogous to (b)): "single-stud
+      part" was computed as "exactly one male hotspot of any kind", which over-counted
+      hinge fingers (SNAP_FGR) and ball joints (SNAP_SPH) -- connectors that rotate by
+      design, with no 90-degree detent at all -- and even non-stud round SNAP_CYL
+      features at the wrong radius (e.g. 2412b.dat, "Tile 1 x 2 Grille with Groove",
+      whose sole male hotspot is a 4 LDU decorative peg, not a 6 LDU stud). Fix scopes
+      the single-stud count to kind == SNAP_CYL at (approximately) the 6 LDU stud
+      radius (src/connect/graph.ts), matching the rule's own "single-stud parts"
+      wording; the same [slide=true] axle/pin exclusion added for B-01 was also applied
+      here (a round shaft in a round hole has no yaw detent to be "sub-detent" relative
+      to). A residual over-firing rate remains after both fixes, concentrated in
+      rotationally-symmetric single-stud parts (round 1x1 plates, minifig heads, cones)
+      and hinge-mounted accessories placed at an intentional yaw -- see the Task 14
+      report's self-review for why this was not resolved further in this pass; not
+      demoted, because genuine off-grid rectangular-tile/plate violations remain a real,
+      distinguishable signal this rule should keep catching. Pre-fix measured rate:
+      91.18% of applicable real models (30-model sample, finding-count framing); see the
+      Task 14 report for the post-fix per-model rate.
+      FINAL FIX WAVE: two further SCOPE corrections, then demoted HARD -> DISCOURAGED.
+      (a) FRAME. The check read the placement's composed WORLD rotation, so every part of
+      every deliberately tilted sub-assembly -- an angled roof, a bogie on curved track,
+      a rotated decorative module, all routine in real sets and all internally detented
+      perfectly -- was failed for not being square to the world. It now reads
+      Placement.local, the matrix the author actually wrote on the part's own line,
+      which is where a sub-detent rotation would be expressed.
+      (b) WHAT COUNTS AS A STUD. "Stud-radius male SNAP_CYL, not sliding" also matches a
+      Technic axle end (43093.dat: secs=A 6 20, an axle cross, not a round stud) and a
+      minifig limb peg (3820.dat: secs=R 6 6.25) -- connectors with no yaw detent at all,
+      and a friction pin does not carry [slide=true] because it is specifically meant not
+      to slide. The single-stud test now matches the full System stud profile, R 6 4:
+      round, stud_radius 6, stud_height 4, both from this file's own meta.ldu block.
+      Together (a) and (b) took the rule from 402 to 46 fail-findings and from 18/24 to
+      11/24 real models over a 24-model OMR sample.
+      (c) TIER. Demoted on this file's OWN tier definitions, not on the residual rate.
+      HARD is "Stresses or damages an element. Never emit; reject and re-plan." A
+      single-stud part turned off 90 degrees is held by ordinary clutch friction on a
+      round stud: nothing is stressed, nothing is damaged, and the part comes off again
+      exactly as it went on. The objection to it is that it is not reproducible in the
+      System -- verbatim the DISCOURAGED definition, "Works but is out-of-system,
+      fragile, or degrades. Emit only with a stated reason." (Contrast B-01, kept HARD:
+      a System stud forced into a Technic pinhole genuinely stresses both elements.)
+      The residual 45.83% is corroboration that the misclassification is common, not the
+      reason for the demotion: it is concentrated in parts with no rotational detent to
+      be off -- round 1x1 plates and dishes (6141, 33291, 32828, 4740, 43898), minifig
+      heads (3626*), flowers (3742), steering wheels (2819), and hinge- or pin-mounted
+      accessories (30383, 2433, 4274, 6587) -- which this tool cannot identify without a
+      per-part rotational-symmetry table it does not ship, the same class of missing
+      datum E-09 documents for part origins. NOT deleted and NOT weakened further:
+      genuine off-detent rectangular tile/plate placements remain a real signal (3040b
+      and 6091 in the same sample), and they stay reported, just not as a gate.
+      SCOPE FIX: DISCOURAGED -> HARD again. The demotion above was withdrawn, not
+      because the tier argument was wrong but because it was answering the wrong
+      question. A verification pass measured the residual it rested on: of 46
+      findings over 24 real models, 42 were rotationally-symmetric or hinge-mounted
+      parts and 4 were genuine (3040b x2, 6091 x2). That is a SCOPE defect -- the
+      rule was judging yaw on parts for which yaw is either unmeasurable or
+      physically free -- and demoting suppressed the 4 real violations along with
+      the 42 spurious ones. Fixed at the root instead, with two exclusions derived
+      from the shadow library's own connectivity data rather than the per-part
+      symmetry TABLE the paragraph above says this tool does not ship (it still does
+      not, and now does not need one):
+      (i) ROTATIONALLY SYMMETRIC PARTS ARE OUT OF SCOPE. A part every one of whose
+      connectors is round in cross-section, aimed along one common direction and
+      positioned ON that one line is invariant under rotation about it: turn it and
+      every connector lands where it already was. This rule's predicate is "yaw mod
+      90 == 0", and for such a part yaw is not a quantity, so the rule states
+      nothing about it at any rotation. Derived by `rotationallySymmetricAxis`
+      (src/connect/hotspots.ts) and exposed as
+      `ConnectionGraph.rotationallySymmetricParts`. It covers 6141, 33291, 3742,
+      4740, 43898, 3626*, 64644, 4274 and their kin WITHOUT naming any of them. The
+      round-section requirement is load-bearing, not decoration: 3024 (a square 1x1
+      plate) has its connectors in exactly the same two places as 6141 and is told
+      apart only by the `S` section of its anti-stud cavity vs 6141's `R`. Without
+      it this exemption would swallow every 1x1 plate, tile and brick in the
+      library -- the class the rule exists to catch.
+      (ii) A FREE-ROTATION CONNECTOR PERMITS ANY ANGLE ABOUT ITS OWN AXIS. A hinge
+      finger (SNAP_FGR), a ball joint (SNAP_SPH) or a ROUND `[slide=true]` shaft is
+      a joint, and a part hung on one sits at whatever angle the joint is set to.
+      `slide=true` was already established (B-01) as "mates anywhere ALONG this
+      axis"; free rotation ABOUT it is the same physical fact. The round-section
+      requirement excludes a Technic AXLE, which carries `slide=true` (6587: `A 6
+      58`) yet seats in exactly four orientations. Unlike (i) this is checked per
+      placement, because a hinge frees one axis and not the part: the placement is
+      exempt exactly when its own rotation carries that axis to a grid direction,
+      which is the necessary and sufficient condition for it to be a free turn on
+      top of an ordinary detent. Covers 2433; deliberately does NOT cover 30383's
+      45-degree yaw, whose hinge axis is horizontal and whose yaw therefore comes
+      from the studs it is seated in, not from its hinge.
+      MEASURED, 98-model sample (every 15th OMR file, the same sample the README
+      quotes): 420 -> 147 fail-findings, 45/98 -> 22/98 models (45.92% -> 22.45%).
+      3040b and 6091 still fail, verified end-to-end against the real shadow library
+      at the exact matrices they carry in 7903-1.mpd (test/golden.test.ts).
+      Per-model exit codes moved from 0:4.08% / 1:3.06% / 2:92.86% to 0:5.10% /
+      1:25.51% / 2:69.39% -- the old 3.06% exit-1 figure was produced BY the
+      demotion, and this is what it costs to state it without one.
+      RESIDUAL, reported rather than absorbed: 147 findings over 22 models, no
+      longer dominated by parts with no detent. 113 of them are five parts --
+      3024 (45), 30367c (33), 3005 (16), 6587 (10), 3794b (9) -- every one of which
+      has a genuinely asymmetric connector footprint (multiple anti-studs, or an
+      axle profile) and is therefore genuinely off-detent where it sits. 47 of the
+      147 share their exact local rotation with a part they are connected to, the
+      signature of a whole sub-assembly the author rotated by writing the composed
+      matrix on every part line instead of rotating a submodel; item (a) above can
+      only recover that frame when a submodel boundary exists to read it off. The
+      harness's automatic verdict at this rate is QUARANTINE and it has NOT been
+      applied, for the same reason it was not applied to E-01: quarantining on a
+      rate is the move that produced the demotion this fix withdrew.
 
   - id: B-03
     name: SNOT_LOGO_CLEARANCE
@@ -332,23 +540,131 @@ rules:
 # --------------------------------------------------------------------------
 
   - id: E-01
-    name: MATRIX_ROW_MAJOR
+    name: MATRIX_WELL_FORMED
     tier: HARD
     source_tier: P1
     statement: "The 9 matrix values are ROW-major: (a,b,c) is the first row. (a,d,g) is the image of the X axis."
     check: transform
     predicate: "det(R) == +1 AND R * transpose(R) == I"
     priority: 1
-    note: "three.js and glm are column-major. Symmetric parts look fine when transposed — test with a slope."
+    note: >
+      TASK 14: kept HARD, but corrected a false claim -- this predicate does NOT
+      detect a transposed (row-major/column-major mixed-up) matrix, described
+      elsewhere as the single most common LDraw generator bug, at any tolerance.
+      For a genuine rotation R, transpose(R) == inverse(R), which is itself
+      orthonormal with determinant +1: a transposed rotation is a perfectly
+      well-formed rotation, just the wrong one, so no orthonormality or
+      determinant test can distinguish forward from transposed. Widening or
+      tightening the tolerance changes nothing (three.js and glm being
+      column-major is exactly why this bug is common, but it does not make it
+      catchable this way). What det(R)==+1 AND R*transpose(R)==I actually
+      catches: a singular (zero-scaled), sheared, or non-uniformly scaled
+      transform -- see the three corpus-measured, non-defect sources of
+      non-orthonormality below, which is what set ORTHONORMALITY_EPS. Detecting a
+      transposed placement instead requires knowing the intended geometry, which
+      a verifier reading one file does not have -- see `not_checkable` below.
+      FINAL FIX WAVE: renamed MATRIX_ROW_MAJOR -> MATRIX_WELL_FORMED. The old name
+      asserted exactly the thing this note says the predicate cannot detect, and the
+      name is what a consuming agent reads first; and the note's own tail still said
+      "genuine shear/transposition (~0.1+)", re-asserting the refuted claim two
+      paragraphs after refuting it (corrected to "shear/scale", matching
+      src/rules/l2-matrix.ts).
+      No test in this suite exercises a transposed matrix as a failure case,
+      because it would (correctly) pass; test/rules-l2-l3.test.ts pins a
+      transposed rotation as a non-finding on purpose, so this is not
+      "fixed" later by loosening the rule.
+      Corpus-wide measurement found three distinct, unrelated sources of
+      non-orthonormality in real OMR files, none of them a real defect: (1) primitives
+      (p/, p/48/, p/8/) and subparts (parts/s/) referenced directly from a custom/
+      embedded "0 FILE" block -- these are building blocks for one custom part's
+      geometry, never a model placement, and legitimately carry wild scale (measured up
+      to 0.8 row-norm deviation on a real subpart reference); both directory classes
+      are now excluded from ResolvedModel.placements entirely (src/library/index.ts,
+      src/resolve/resolve.ts). (2) ordinary 6-decimal-place authoring plus curved-track
+      small-angle approximation (e.g. 10001-1.mpd's curved 9V track, 74747.dat) compounds
+      up to ~0.04 row-norm deviation, two orders of magnitude below genuine
+      shear/scale (~0.1+); ORTHONORMALITY_EPS raised 1e-3 -> 0.05 to clear it with
+      headroom (src/resolve/matrix.ts, consumed by src/rules/l2-matrix.ts). (3) LDCad's
+      own auto-generated flexible-path fallback content (`0 !LDCAD GENERATED`, real
+      files: Power Functions cables, Technic chains/treads) deliberately shears/scales
+      each segment to approximate a curve a physically flexible element is allowed to
+      take (determinant up to ~42 measured); such placements now report `unknown`, not
+      `fail` (Placement.generatedFlexPath, src/resolve/{ir,resolve}.ts). Pre-fix
+      measured rate: 97.71% of applicable real models (30-model sample, finding-count
+      framing); see the Task 14 report for the post-fix per-model rate.
+      VERIFICATION PASS: the FINAL FIX WAVE paragraph above claimed the note's tail was
+      corrected from "genuine shear/transposition (~0.1+)" to "genuine shear/scale
+      (~0.1+)", but the correction was never actually applied here -- only the claim
+      that it had been was written. This paragraph is that correction, applied for
+      real. `src/rules/l2-matrix.ts` and `src/resolve/matrix.ts` were already correct;
+      only this corpus copy carried the false claim, compounded by a false statement
+      that it had been fixed.
 
   - id: E-02
     name: Y_IS_UP_NEGATIVE
-    tier: HARD
-    source_tier: P1
+    tier: DISCOURAGED
+    source_tier: S
     statement: "-Y is up. Stack upward by decreasing Y. Part origin sits on the TOP face."
     check: grid
-    predicate: "all y <= 0 AND y mod 4 == 0"
-    note: "A brick on the ground has origin_y = -24. Do not add stud height when stacking."
+    predicate: "y mod 2 == 0"
+    note: >
+      A brick on the ground has origin_y = -24. Do not add stud height when stacking.
+      TASK 14: demoted HARD -> DISCOURAGED. "y <= 0 throughout" and "y mod 4 == 0" are
+      conventions for a single assembly built up from one shared ground plane at y=0,
+      not properties every valid placement in a real model has. Measured directly
+      against the real OMR corpus: genuine released sets place parts at y > 0 (e.g. a
+      part hanging below a hinge point) and at y values that are not multiples of 4 (a
+      part's own LDraw-authored origin is not always at a grid-multiple reference point
+      -- see E-09's own measurement that only 24% of parts have the "standard studs-up"
+      origin signature). Both failure modes persisted even after the tool's own
+      axis-alignment gate (isAxisAligned in resolve/matrix.ts) already excludes
+      placements reached through a rotated ancestor submodel, where the claim is not
+      even well-formed. Pre-fix measured rate: 100% of applicable real models (30-model
+      sample, finding-count framing) / see the Task 14 report for the corrected
+      per-model rate. Kept as DISCOURAGED (not deleted): still useful signal that a
+      placement's height sits outside the ordinary ground-referenced stacking
+      convention, worth surfacing, never worth blocking on.
+      FINAL FIX WAVE: predicate corrected from "y mod 4 == 0" to "y mod 2 == 0", because
+      4 LDU is the quantum of ONE construction (an ordinary studs-up plate/brick stack),
+      not of the System. This file's own meta.ldu block gives technic_hole_axis_depth: 10
+      -- a Technic hole's axis sits 10 LDU into the brick, and 10 is not a multiple of 4,
+      so EVERY correctly seated Technic pin or axle has a Y that is 2 (mod 4). The claim
+      was false by construction for the entire Technic system. The System's actual
+      vertical lattice is the gcd of its own constants (plate 8, brick 24, stud 4,
+      Technic hole 10) = 2 LDU. Corroborating measurement over a 24-model OMR sample:
+      1381 of 1554 "not a multiple of 4" findings sat exactly at the 2-mod-4 offset, led
+      by 2780.dat/43093.dat/4274.dat (Technic pins), and the corrected predicate takes
+      the rule from 1727 to 346 fail-findings on the same sample while still catching
+      every non-integer and odd-LDU coordinate. Also note E-02 already reports `unknown`
+      -- not `fail` -- for a placement reached through a non-axis-aligned ancestor
+      transform, where a world-frame grid claim is not decidable at all
+      (src/rules/l3-grid.ts).
+      VERIFICATION PASS, two corrections.
+      (1) SOURCE TIER. Demoted P1 -> S. This note's own TASK 14 paragraph already
+      concedes "y <= 0 throughout" and "y mod 4 == 0" are a generator convention, not a
+      LEGO Group / BrickLink first-party statement, and the FINAL FIX WAVE paragraph
+      derives the corrected 2 LDU quantum from the gcd of this file's OWN meta.ldu
+      constants, not from any cited source. That is a first-party label on this
+      repository's own derivation. Nobody checked whether a 2 LDU lattice, or the
+      original 4/10 moduli it replaced, have independent first-party backing -- see the
+      final fix wave's self-review. S ("secondary analysis that shows its working") is
+      what this note actually is: it shows the gcd derivation and the measurement: an
+      honest label, not a downgrade of the underlying reasoning.
+      (2) THE y <= 0 CLAUSE. Removed from the predicate. It is the same class of error
+      as the y mod 4 quantum this note already corrected: "build up from a ground plane
+      at y=0" is a generator convention, one particular way to AUTHOR a model, not a
+      property every valid placement has. This note's own TASK 14 paragraph already
+      measured genuine released sets placing parts at y > 0 (a part hanging below a
+      hinge point) and said so in as many words -- the predicate simply never caught up
+      to its own note. Directly measured over the 24-model OMR sample already used
+      elsewhere in this file: the y > 0 branch fired on 11 of 24 models and 173
+      placements, essentially the same footprint as the y-mod-4 branch this note already
+      corrected for the identical reason. A model whose origin is not at its ground
+      plane is not invalid, so there is nothing left for this clause to legitimately
+      assert; y mod 2 == 0 alone is what E-02 now checks. Corrected predicate re-measured
+      over the same 98-model sample used for the final fix wave's post-fix table:
+      applicable/failed model counts and the finding count are in
+      .superpowers/sdd/final-fix-report.md's "Verification fixes" section.
 
   - id: E-03
     name: MODEL_COLOUR_CONCRETE
@@ -362,11 +678,39 @@ rules:
   - id: E-04
     name: GRID_ALIGNMENT
     tier: DISCOURAGED
-    source_tier: P1
-    statement: "Grid-aligned placements land on multiples of 10 in X/Z and 4 in Y."
+    source_tier: S
+    statement: "Placements land on the System's own 2 LDU lattice. The ordinary studs-up lattice is 10 in X/Z and 4 in Y, but SNOT and Technic constructions legitimately land between."
     check: grid
-    predicate: "x mod 10 == 0 AND z mod 10 == 0"
-    note: "Legitimately violated by jumpers (10) and deliberate SNOT. Advisory, not a gate."
+    predicate: "x mod 2 == 0 AND z mod 2 == 0"
+    note: >
+      Legitimately violated by jumpers (10) and deliberate SNOT. Advisory, not a gate.
+      FINAL FIX WAVE, two corrections.
+      (1) DECIDABILITY. This rule asserted `fail` on exactly the placements E-02
+      declared `unknown`: a world-frame X/Z grid claim is not decidable for a placement
+      reached through a non-axis-aligned ancestor transform (an angled roof, a bogie on
+      curved track), because the part can sit exactly on-grid in its own submodel's
+      frame while its composed world X/Z is a multiple of nothing. Measured on
+      10001-1.mpd before the fix: E-02 emitted 555 `unknown` and 211 `fail`, E-04
+      emitted 590 `fail` and ZERO `unknown`, about the same placements. Both rules now
+      share one decidability gate (`undecidableInWorldFrame`, src/rules/l3-grid.ts) so
+      they cannot drift apart again.
+      (2) QUANTUM. Corrected from "x mod 10 == 0 AND z mod 10 == 0" to the System's own
+      2 LDU lattice, for the same reason as E-02: SNOT turns plate thickness (8) and
+      wall thickness (4) into HORIZONTAL offsets -- this file's own I1 identity
+      (5 plates == 2 studs) is what makes that legal -- so real sets land on 2, 4, 6 and
+      8 by construction. Measured over a 24-model OMR sample: 1015 of 1197 residuals sat
+      on exactly those offsets; the corrected predicate takes the rule from 1198 to 286
+      fail-findings while still catching all 84 fractional coordinates and the 122
+      quarter-stud (5 LDU) ones.
+      VERIFICATION PASS: SOURCE TIER demoted P1 -> S, for the same reason as E-02. The
+      2 LDU lattice above is this repository's own derivation -- the gcd of this file's
+      own meta.ldu constants -- not a cited LEGO Group / BrickLink first-party figure,
+      and nobody has checked whether that lattice, or the original 10 LDU modulus it
+      replaced, has independent first-party backing (see the final fix wave's
+      self-review). S ("secondary analysis that shows its working") is what this note
+      already is; P1 mislabelled its provenance, which matters because this file is
+      slated for backport into a canonical copy in another repository, and a backport
+      reviewer there cannot detect a provenance error a first-party label conceals.
 
   - id: E-05
     name: MPD_STRUCTURE
@@ -385,12 +729,25 @@ rules:
 
   - id: E-07
     name: NO_DEPRECATED_PARTS
-    tier: HARD
+    tier: DISCOURAGED
     source_tier: P1
     statement: "Do not reference ~Moved to aliases or ~-prefixed hidden parts."
     check: part_identity
     predicate: "reject any part whose description line starts with '0 ~'"
-    note: "~16% of the parts directory is aliases or hidden parts you should not reference."
+    note: >
+      ~16% of the parts directory is aliases or hidden parts you should not reference.
+      TASK 14: demoted HARD -> DISCOURAGED. Referencing a "~Moved to" alias or a bare
+      ~-hidden part is a library-cataloguing nit, not a build-legality defect: the
+      referenced .dat still parses to the exact same physical geometry either way (a
+      rename does not change what gets built), and real released sets -- authored over
+      the part library's multi-decade history -- reference pre-rename/superseded part
+      numbers routinely, simply because that was the current number when the file was
+      made. Measured directly against the real OMR corpus: essentially every real,
+      legally-built set references at least one such part somewhere (pre-fix rate ~100%
+      of applicable real models, finding-count framing over a 30-model sample; see the
+      Task 14 report for the per-model figure). Kept as DISCOURAGED, not deleted: a
+      generating agent should still prefer the current canonical id -- it is real
+      housekeeping hygiene -- just not a gate on whether the build is legal.
 
   - id: E-08
     name: PART_NUMBERS_RESOLVED
@@ -411,6 +768,15 @@ rules:
       Measured over a 250-part sample: only 24% have the standard studs-up signature,
       43% have their origin off the footprint centre, 60% have non-integer coordinates.
       A 2x1 45-degree slope breaks the centroid formula silently.
+
+  - id: E-10
+    name: FILE_PARSES
+    tier: HARD
+    source_tier: P1
+    statement: "Every line must be a valid LDraw line type with the correct token count and numeric fields."
+    check: transform
+    predicate: "no tokenizer error remains unreported"
+    note: "Owns L0_TOKEN_COUNT, L0_NON_NUMERIC and L0_LINE_TYPE. Without this, malformed lines are detected by the tokenizer and then silently discarded."
 
 # --------------------------------------------------------------------------
 # Technique constants the agent must use instead of part names.
@@ -526,6 +892,7 @@ rules:
 # --------------------------------------------------------------------------
 
 not_checkable:
+  - "Is a placement's rotation matrix transposed (row/column-major mixed up)? (E-01 cannot see this: transpose(R) of a genuine rotation R is itself orthonormal with determinant +1, so it is indistinguishable from the correct orientation at any tolerance. Detecting it requires knowing the intended geometry, which a verifier reading a single file does not have — TASK 14, see E-01's note.)"
   - "Is this model structurally sound? (L6 — unsolved in the open)"
   - "Would this actually clutch together and hold? (no zero-tolerance ground truth exists)"
   - "Is this good building technique? (aesthetic; heuristic at best)"
