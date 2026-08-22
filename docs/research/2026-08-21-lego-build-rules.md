@@ -282,3 +282,24 @@ damaged, and the excess is concentrated in the derived `T-*` rules and in
 statements that are facts rather than prohibitions. `LEGAL` turns out not to be
 a severity at all but a permission, on a different axis, never defined in the
 `tiers:` block despite four rules using it.
+
+**The audit was applied, and `tier` turned out to have been carrying three
+incompatible things.** Rules now declare a `kind`: `constraint` (41) — something
+a model can violate, and the only kind that carries a tier; `permission` (3) —
+a technique that looks illegal and is not, recorded so a generator does not
+"fix" it; `reference` (2) — a geometric fact nothing can violate. `LEGAL` is
+retired. `T-05` joined `T-04` as a reference, which is what finally resolved two
+identical kinds of statement sitting at two different severities.
+
+`T-08` and `T-06` dropped to DISCOURAGED to match `T-07`: weakness is not
+damage, all three are derived sources, and **phrasing is not force** — "Never
+place a tile in a load path" reads prohibitive exactly as B-07's imported "must"
+did. `L-12` dropped to STYLE rather than being deleted; unlike `L-03`, which was
+*wrong*, it is merely *unstated*, and deleting it would lose a pointer at a real
+interaction. `B-09` was scoped rather than re-tiered — `domain: submission`
+carries the scope, and a tier now means what it means *within* a domain, never
+across.
+
+HARD fell from 30 of 46 to 26, and every rule verdict over a 244-model sample
+was unchanged. That is the test of a reclassification: the corpus says something
+different about itself while saying exactly the same thing about the models.
