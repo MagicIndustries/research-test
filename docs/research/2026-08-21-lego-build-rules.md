@@ -168,3 +168,138 @@ Three concrete corrections:
 **What the tool cannot do, measured rather than assumed.** It exits nonzero on ~97% of real sets, almost all at the advisory tier; gate on exit 1, which fires on ~25%. `B-06` renders a verdict on only a small fraction of real models, because the ~19% connectivity gap is permanent — the rest are honestly `unknown`. Full figures, sample sizes and per-rule notes live in the corpus file beside each rule.
 
 **Rules changed over time is not a footnote — it is a design constraint.** §4's `C-*` series recorded it; implementation showed it determines whether a measured rate means anything at all.
+
+## 9. Addendum, 2026-08-22 — what running the rules against the whole corpus proved
+
+Section 8 recorded what building the verifier taught. This section records what
+*running* it over all 1,464 OMR models taught, which is a different and harsher
+test: §8 could still assume a rule meant what its statement said.
+
+**`L-03` was a misreading and has been removed; the corpus is now 46 rules.**
+`MULTI_STUD_INTO_TECHNIC_HOLES` was recorded as "never more than one stud into
+Technic holes" — a budget of one. The source is making a different point: System
+and Technic do not share an edge datum, so System studs driven into Technic
+holes do not line up. That is a flat incompatibility, not an allowance. `B-01`
+already states the ban flatly and is the rule kept.
+
+What exposed it was building the exemplar pair. Authored to match the statement,
+`L-03`'s *legal* twin — a single stud in a Technic hole — fired `B-01`. A flat
+ban and a one-stud budget cannot both hold, and the contradiction was in the
+corpus rather than the code. **A rule whose legal exemplar trips another rule is
+reporting a corpus defect**, and is worth building for that reason alone.
+
+**`B-01` as written had no true positives.** Over 1,464 models it produced 33
+findings across 17 sets, and every one was a false positive. Three defects, all
+the same shape: an edge carried a value describing *one side* of a connection
+without recording which side, so the rule could not ask its actual question.
+
+- *Which part owns the socket.* Asking "is either endpoint a Technic-hole part"
+  conflates "has a hole somewhere" with "the hole is what is connected here".
+  `caps=none` means an opening with no closed end, which describes a **hollow
+  stud** and a round-brick barrel just as it describes a pinhole. Stacking a
+  1×1 round brick on a Technic brick makes the round brick the socket; the rule
+  blamed the Technic brick's pinhole, ten LDU from the connection. 32 of 33.
+- *Which side the radius describes.* The radius fell back between sides, so a
+  stud-sized reading could be the hole's. The 33rd finding was a wheel rim whose
+  only male connector is its r=38 tyre seat, called a System stud on the
+  strength of the pinhole's 6.
+- *Evidence split across duplicate edges.* One physical connection can produce
+  several edges — a pin in a hole yields three, of which one carries
+  `slide=true`. A correctly seated pin therefore read as a stud in a pinhole.
+
+After attributing each value to the side that supplied it, B-01 reports **0
+findings across all 1,464 models** while still firing on its illegal exemplar.
+
+**This changes how §6's "honest limits" should be read.** §8 warned that a
+residual rate is "false positive **or** reproduction artefact **or** period
+difference". B-01 shows a fourth reading that outranks all three: *the rule is
+measuring the wrong thing*. Period difference was the plausible explanation here
+— B-01 is a current BrickLink rule and the corpus spans decades, so hits on
+vintage sets looked like correct detections of once-permitted technique. That
+explanation was wrong, and it was comfortable enough to have stopped the
+investigation. **Attribute the mechanism before attributing a rate to history.**
+
+**Exemplar geometry cannot be verified by looking at it.** Sixteen of the
+hand-authored fixtures were geometrically wrong in a way renders did not reveal:
+parts placed at a plate's centre rather than on a stud float 14.1 LDU from any
+connection point against a 1 LDU pairing tolerance, and look seated. The
+method that works is to read the target part's hotspots, place the mating part
+so its hotspot coincides in position *and* axis, then confirm the intended rule
+fires. The last step is the gate — for rules whose violation *is* a
+misplacement (`E-02`, `E-04`, the wedged part in `G-01`/`L-10`), an automated
+"make it connect" pass silently destroys what the fixture exists to demonstrate.
+
+**Duplicate connectivity edges were pervasive, not incidental.** 15.3% of all
+edges described a connection already described by another edge. Collapsing them
+cut edge count 16.7% while leaving components, coverage and every rule verdict
+identical — the redundancy carried no information, but it did split evidence
+across edges in a way that defeated at least one rule.
+
+**A rule's tier has to come from its source's own force, not from how checkable
+it is.** `B-07` was tiered HARD and implemented as a hard gate. Its source is
+the BrickLink Designer Program's *Stability* guidance, which says bricks and
+plates "should overlap whenever possible" and concedes in the same sentence
+that building in stacks may have visual appeal, weighing that against the model
+staying together. This corpus had escalated "should, wherever possible" into
+"must". Nothing supports that: a stacked seam makes a wall weaker, never
+unbuildable, unlike a stud forced into a pinhole. Demoted to DISCOURAGED, which
+took 10 of 244 real sets out of the exit-1 gate — every one of them failed
+solely for a bond the source explicitly permits as a trade.
+
+The tell was available before implementation and was missed twice. This note's
+own reference companion files the rule as `BDP_STABILITY`, quotes five
+stability sentences of which only one is checkable, marks B-07 uncheckable in
+its summary table while its prose gives a concrete predicate, and elsewhere
+files seam staggering under aesthetic judgement. **A rule renamed away from its
+source — `BDP_STABILITY` to `MASONRY_BOND` — loses the context that sets its
+tier**, and renaming to whatever clause turned out to be computable is how a
+recommendation quietly becomes a law.
+
+**Two axes were doing one field's work.** Every rule carried a `tier` and
+nothing else, so the corpus could not distinguish a claim about the physical
+build from a claim about the file. `L-10` (a plate wedged between two studs)
+and `E-06` (no BFC statements in a model file) are both rules an agent must
+follow, but one is about LEGO and the other is about LDraw, and a violation of
+each means something completely different — one build cannot exist, the other
+renders fine and breaks a file convention. All 46 rules now carry
+`domain: physical | file | submission`: 33, 11 and 2 respectively.
+
+The split immediately exposed that **the tier definitions were only ever
+written for physical rules.** `HARD` means "stresses or damages an element" —
+not a test a malformed matrix can pass or fail, yet seven HARD rules are
+file rules. Those tiers had been assigned by analogy the whole time.
+
+It also turned up a third category that is neither: `B-09` (part count,
+palette) and `D-04` (build complexity) are BrickLink Designer Program
+*submission* rules. Outside that programme they do not apply, and violating one
+gets a submission rejected rather than making a model wrong.
+
+**A full tier audit is in `2026-08-22-rule-tier-audit.md`.** Its sharpest
+finding: `T-04` and `T-05` are the same kind of thing — a geometric fact about a
+part family — tiered LEGAL and HARD respectively. Neither can be violated. 30 of
+46 rules are HARD in a corpus where HARD is supposed to mean an element gets
+damaged, and the excess is concentrated in the derived `T-*` rules and in
+statements that are facts rather than prohibitions. `LEGAL` turns out not to be
+a severity at all but a permission, on a different axis, never defined in the
+`tiers:` block despite four rules using it.
+
+**The audit was applied, and `tier` turned out to have been carrying three
+incompatible things.** Rules now declare a `kind`: `constraint` (41) — something
+a model can violate, and the only kind that carries a tier; `permission` (3) —
+a technique that looks illegal and is not, recorded so a generator does not
+"fix" it; `reference` (2) — a geometric fact nothing can violate. `LEGAL` is
+retired. `T-05` joined `T-04` as a reference, which is what finally resolved two
+identical kinds of statement sitting at two different severities.
+
+`T-08` and `T-06` dropped to DISCOURAGED to match `T-07`: weakness is not
+damage, all three are derived sources, and **phrasing is not force** — "Never
+place a tile in a load path" reads prohibitive exactly as B-07's imported "must"
+did. `L-12` dropped to STYLE rather than being deleted; unlike `L-03`, which was
+*wrong*, it is merely *unstated*, and deleting it would lose a pointer at a real
+interaction. `B-09` was scoped rather than re-tiered — `domain: submission`
+carries the scope, and a tier now means what it means *within* a domain, never
+across.
+
+HARD fell from 30 of 46 to 26, and every rule verdict over a 244-model sample
+was unchanged. That is the test of a reclassification: the corpus says something
+different about itself while saying exactly the same thing about the models.
