@@ -254,3 +254,31 @@ files seam staggering under aesthetic judgement. **A rule renamed away from its
 source — `BDP_STABILITY` to `MASONRY_BOND` — loses the context that sets its
 tier**, and renaming to whatever clause turned out to be computable is how a
 recommendation quietly becomes a law.
+
+**Two axes were doing one field's work.** Every rule carried a `tier` and
+nothing else, so the corpus could not distinguish a claim about the physical
+build from a claim about the file. `L-10` (a plate wedged between two studs)
+and `E-06` (no BFC statements in a model file) are both rules an agent must
+follow, but one is about LEGO and the other is about LDraw, and a violation of
+each means something completely different — one build cannot exist, the other
+renders fine and breaks a file convention. All 46 rules now carry
+`domain: physical | file | submission`: 33, 11 and 2 respectively.
+
+The split immediately exposed that **the tier definitions were only ever
+written for physical rules.** `HARD` means "stresses or damages an element" —
+not a test a malformed matrix can pass or fail, yet seven HARD rules are
+file rules. Those tiers had been assigned by analogy the whole time.
+
+It also turned up a third category that is neither: `B-09` (part count,
+palette) and `D-04` (build complexity) are BrickLink Designer Program
+*submission* rules. Outside that programme they do not apply, and violating one
+gets a submission rejected rather than making a model wrong.
+
+**A full tier audit is in `2026-08-22-rule-tier-audit.md`.** Its sharpest
+finding: `T-04` and `T-05` are the same kind of thing — a geometric fact about a
+part family — tiered LEGAL and HARD respectively. Neither can be violated. 30 of
+46 rules are HARD in a corpus where HARD is supposed to mean an element gets
+damaged, and the excess is concentrated in the derived `T-*` rules and in
+statements that are facts rather than prohibitions. `LEGAL` turns out not to be
+a severity at all but a permission, on a different axis, never defined in the
+`tiers:` block despite four rules using it.
