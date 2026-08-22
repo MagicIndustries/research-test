@@ -312,6 +312,21 @@ git commit -m "feat: scaffold, AST types, and line tokenizer"
 
 ## Task 2: MPD document parsing
 
+> **Correction (2026-08-22, from execution).** The `parseDocument` reference code in Step 3
+> below has a **defect**, found by the implementer while executing this task and confirmed by
+> review. Its `sawAnyContent` flag is never reset, so after a `0 NOFILE` closes a block the
+> *next* `0 FILE` wrongly raises `L0_CONTENT_BEFORE_FILE` — which fails this task's own first
+> test. A second, related defect sits in the single-block fallback: it cannot distinguish
+> "no `0 FILE` has ever been seen" (the legitimate case for a plain `.ldr`) from "a block was
+> opened and then closed", so content orphaned after a `0 NOFILE` is silently absorbed into a
+> fabricated block, which can also displace the real main model from `blocks[0]`.
+>
+> The shipped implementation resolves both with a one-time prescan over the already-tokenised
+> lines (`hasAnyFileBlock`), reuses `L0_CONTENT_BEFORE_FILE` when nothing has opened yet, and
+> adds `L0_ORPHANED_CONTENT` for content stranded after a `0 NOFILE`. See `src/parse/document.ts`
+> in the `ldraw-verify` repository for the working version; treat the block below as the
+> historical brief, not as code to copy.
+
 **Files:**
 - Create: `src/parse/document.ts`
 - Test: `test/document.test.ts`
