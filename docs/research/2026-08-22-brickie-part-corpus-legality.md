@@ -98,12 +98,69 @@ generator work.
 
 **B-05, 1 finding:** a single sub-detent rotation. Worth a look as a one-off.
 
+## Composed brickies: a single systematic 4 LDU offset
+
+Forty full brickies were composed — one template from each of the five
+categories, overlaid at identity, which is geometrically what
+`combineBrickieMpd` does (every category root is emitted as an
+`identityReferenceLine`, so all five are authored in one shared world frame).
+
+| | |
+|---|---|
+| Mean parts | 151 |
+| Mean components | **8.1** (min 3, max 19) |
+| Mean lone parts | 5.5 |
+| Fully connected | **0 of 40** |
+| Coverage | 99.1% |
+
+Composition removes most of the fragmentation — hair alone averages 16.8
+components — but no composed brickie reaches one piece. Breaking the residue
+down:
+
+- **~27% of lone parts have no shadow data at all**, so they can never pair.
+  These are sculpted and curved bricks like `5907` (Brick 2x1x1.667 with Curved
+  Top). A verifier blind spot, not a build defect, and not fixable from this
+  side.
+- **Of those that do have data, 83% sit a single-axis offset from a valid
+  connection, and 75% of them are offset by exactly 4.00 LDU — one stud
+  height.** The gap histogram is dominated by a single value: 4.00 appears 42
+  times out of 53.
+
+That is one systematic cause, not scattered inaccuracy.
+
+### The control that makes this trustworthy
+
+The same measurement, run over real official sets from the OMR corpus:
+
+| | single-axis offset | **exactly 4 LDU** | commonest gaps |
+|---|---|---|---|
+| Brickie corpus | 83% | **75%** | 4.00 (42 of 53) |
+| Real official sets | 50% | **8%** | 8.00, 4.00, 10.00 |
+
+Real sets do not show the pattern. So the 4 LDU offset is **a property of the
+brickie templates, not of the verifier's pairing convention** — which was the
+alternative explanation, and a live one given that this project has already
+found two cases where physically-correct seating leaves LDCad hotspots a fixed
+distance apart (see the `L-01` and `L-04` exemplar notes).
+
+### What it probably is, and why it matters
+
+A surface tile placed flush against a face rather than on top of the stud that
+should carry it is exactly 4 LDU out, and renders identically. These templates
+were authored in Studio with free positioning, so nothing forced them to snap.
+
+For the generator this is the single most useful thing measured so far: **three
+quarters of the corpus's residual illegality is one repeatable offset**, which
+is detectable, quantifiable, and probably fixable by a snap pass. It is also
+the convention a generated part must get right, and getting it wrong is
+invisible in a render.
+
+Whether the corpus should be corrected or the connection treated as legitimate
+is a decision for whoever owns the assets. Either way it is one rule, not 199
+broken parts.
+
 ## What this does not yet tell us
 
-- **Whether a fully composed brickie is completely connected.** Head + Hair got
-  to 3 components with body, legs and accessory still missing. The remaining
-  fragments may resolve with full composition, or may be genuine. Composing all
-  five categories and re-measuring is the obvious next step.
 - **The interface contract itself** — where a Hair *must* present anti-studs to
   meet a Head, the size envelopes, the origin conventions. The gradient above
   says what kind of thing each category is; it does not yet say what a new part
