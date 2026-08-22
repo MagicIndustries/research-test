@@ -159,14 +159,49 @@ Whether the corpus should be corrected or the connection treated as legitimate
 is a decision for whoever owns the assets. Either way it is one rule, not 199
 broken parts.
 
+## The interface contract, measured
+
+Where each category joins the next, across 25 composed brickies. None of this
+is documented; it is derived from what the corpus does.
+
+| interface | plane (Y) | studs presented by | joins |
+|---|---|---|---|
+| Body ↔ Legs | **0** | Legs | 382 |
+| Body ↔ Head | **−64** | Body | 382 |
+| Hair ↔ Head | −94, −114, −134, −144 | Head | **1404** |
+| Head ↔ HeadAccessory | **−144** | Head | 320 |
+| Hair ↔ HeadAccessory | −152, −160, −168 | mixed | 234 |
+
+**The structural joints are single-plane and directional.** Legs present studs
+upward at Y=0 and Body receives them; Body presents studs at Y=−64 and Head
+receives them. Every one of the 382 joins in each case lands on exactly one
+plane, which makes the contract for a replacement part unambiguous: a new Body
+must receive at 0 and present at −64.
+
+**Hair is not a structural joint.** It meets the Head across four planes and
+1,404 connections — a surface shell of tiles and slopes laid over the head's
+form rather than a part that plugs in. This is the same fact the component
+counts showed from the other direction, and it constrains generation: a hair
+piece built as one rigid connected lump would be as wrong as legs built as
+loose fragments, and no check that only asks "is it connected" sees either
+error.
+
+`Hair ↔ HeadAccessory` is the one irregular interface — three planes and mixed
+direction, with more distinct part pairs (52) than any other. Treat it as
+under-specified rather than as a contract.
+
 ## What this does not yet tell us
 
-- **The interface contract itself** — where a Hair *must* present anti-studs to
+- **The style conventions themselves** — where a Hair *must* present anti-studs to
   meet a Head, the size envelopes, the origin conventions. The gradient above
   says what kind of thing each category is; it does not yet say what a new part
   must satisfy to drop into the same slot.
-- **The style conventions** — part palette, recurring techniques, typical piece
-  counts. Deferred deliberately until legality is settled.
+  — part palette, recurring techniques, typical piece counts. Deferred
+  deliberately until legality is settled.
+- **Whether any 4 LDU offset is deliberate.** A part held by friction or by a
+  neighbour rather than by a stud is a legitimate technique, and this
+  measurement cannot tell it apart from an authoring slip. That three quarters
+  share one exact offset argues for the slip.
 
 ## Method note
 
