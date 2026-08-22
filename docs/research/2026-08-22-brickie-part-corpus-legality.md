@@ -190,6 +190,122 @@ error.
 direction, with more distinct part pairs (52) than any other. Treat it as
 under-specified rather than as a contract.
 
+## The style conventions, measured
+
+What "in the correct style" means, derived from the 199 templates rather than
+described. Six conventions, in descending order of how hard they look.
+
+### Every build is strictly orthogonal
+
+**100% of placements in every category are axis-aligned** (99% for
+HeadAccessory, a single exception). Not one part in 6,748 is set at an oblique
+angle. Whatever else a generated part does, it does not tilt.
+
+### Every build is mirror-symmetric about X=0
+
+| category | off-centre parts with a mirror partner | parts on the centre line |
+|---|---|---|
+| Legs | **98%** | 33% |
+| HeadAccessory | **98%** | 43% |
+| Body | 96% | 38% |
+| Head | 96% | 38% |
+| Hair | 89% | 15% |
+
+Hair is the least symmetric, which is what you would expect of fringes and side
+partings; everything else is near-absolute. A generator should build one half
+and reflect it, treating asymmetry as a deliberate exception rather than a
+default.
+
+### SNOT is the dominant technique, and it increases up the figure
+
+Proportion of placements whose studs point up:
+
+| category | studs up | next commonest directions |
+|---|---|---|
+| Legs | **81%** | scattered, 4–6% each |
+| Body | 73% | ±X at 10% each |
+| Head | 58% | **−Z at 41%** |
+| HeadAccessory | 69% | mixed |
+| Hair | **28%** | ±X at 24% each, +Z 15% |
+
+Legs are conventional upright building. Hair is predominantly sideways. The
+Head's 41% pointing −Z is the face: a large forward-facing SNOT surface on an
+upright core.
+
+This is the same gradient the connectivity counts found, arrived at
+independently — structure at the bottom, sculpted shell at the top.
+
+### The palette is small and deliberate
+
+**117 distinct parts across 6,748 placements, and 21 of them cover 80%.** That
+is 18% of the vocabulary doing four fifths of the work. The character of the
+top of that list is the style:
+
+| part | uses | what it is |
+|---|---|---|
+| `22885` | 690 | Brick 1x2x1.667 with Studs on 1 Side — **a SNOT brick, the single most used part** |
+| `3023b` | 554 | Plate 1x2 |
+| `3024` | 445 | Plate 1x1 |
+| `15068` | 432 | Slope Brick Curved 2x2x0.667 |
+| `3020` | 361 | Plate 2x4 |
+| `3710` | 361 | Plate 1x4 |
+| `11477` | 347 | Slope Brick Curved 2x1 |
+| `3069b` | 245 | Tile 1x2 |
+| `3941` | 228 | Brick 2x2 Round |
+| `2431` | 223 | Tile 1x4 |
+
+Side-stud bricks and plates for the core, curved slopes and tiles for the
+surface. That is a sculpting vocabulary, not a building one, and the most-used
+part in the whole corpus being a SNOT brick says the same thing as the
+orientation table.
+
+### Size is consistent within a category
+
+| category | median parts | range | distinct parts | vertical envelope (Y) |
+|---|---|---|---|---|
+| Legs | 14 | 6–42 | 34 | 0 … +56 |
+| Body | 32 | 26–71 | 36 | −64 … −8 |
+| Head | **29** | **21–35** | 31 | −145 … −44 |
+| Hair | 47 | 16–97 | 58 | −220 … −34 |
+| HeadAccessory | 13 | 8–50 | 54 | −216 … −144 |
+
+Head is the tightest — 53 templates all landing between 21 and 35 parts, which
+is a strong constraint on a generated head. Hair is the loosest by a wide
+margin. HeadAccessory is the odd one: only 16 templates but 54 distinct parts,
+so each accessory is idiosyncratic rather than drawn from a shared kit.
+
+The whole figure spans Y +56 (feet) to −220 (top of hair) — about 276 LDU, or
+eleven and a half bricks.
+
+### Colour is a placeholder scheme, not a design choice
+
+Placements carry a small set of codes — 308, 1, 71, 19, 0 dominate — which
+`combineBrickieMpd` rewrites per colour region. A generated part must tag its
+regions with the same codes, not choose colours.
+
+## What "style" here does not cover
+
+These are structural conventions. They say a generated part must be
+orthogonal, mirror-symmetric, SNOT-heavy in proportion to its height, drawn
+from a 21-part core vocabulary, and sized to its category. **They do not say
+whether the result looks like a person.** Nothing measured here distinguishes a
+good caricature from a bad one, and that judgement is the part of the master
+builder's job this analysis cannot stand in for.
+
+## Fix available now: one deprecated part
+
+The 226 `E-07` findings come from just five aliases, and one accounts for 95%:
+
+| reference | uses | should be |
+|---|---|---|
+| `3023.dat` | **208** | `3023b.dat` |
+| `43722.dat` | 5 | `43722a.dat` |
+| `43723.dat` | 5 | `43723a.dat` |
+| `41769.dat` | 1 | `41769a.dat` |
+| `41770.dat` | 1 | `41770a.dat` |
+
+A single find-and-replace of `3023` clears the great majority of it.
+
 ## What this does not yet tell us
 
 - **The style conventions themselves** — where a Hair *must* present anti-studs to
