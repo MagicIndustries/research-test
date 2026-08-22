@@ -234,3 +234,23 @@ edges described a connection already described by another edge. Collapsing them
 cut edge count 16.7% while leaving components, coverage and every rule verdict
 identical — the redundancy carried no information, but it did split evidence
 across edges in a way that defeated at least one rule.
+
+**A rule's tier has to come from its source's own force, not from how checkable
+it is.** `B-07` was tiered HARD and implemented as a hard gate. Its source is
+the BrickLink Designer Program's *Stability* guidance, which says bricks and
+plates "should overlap whenever possible" and concedes in the same sentence
+that building in stacks may have visual appeal, weighing that against the model
+staying together. This corpus had escalated "should, wherever possible" into
+"must". Nothing supports that: a stacked seam makes a wall weaker, never
+unbuildable, unlike a stud forced into a pinhole. Demoted to DISCOURAGED, which
+took 10 of 244 real sets out of the exit-1 gate — every one of them failed
+solely for a bond the source explicitly permits as a trade.
+
+The tell was available before implementation and was missed twice. This note's
+own reference companion files the rule as `BDP_STABILITY`, quotes five
+stability sentences of which only one is checkable, marks B-07 uncheckable in
+its summary table while its prose gives a concrete predicate, and elsewhere
+files seam staggering under aesthetic judgement. **A rule renamed away from its
+source — `BDP_STABILITY` to `MASONRY_BOND` — loses the context that sets its
+tier**, and renaming to whatever clause turned out to be computable is how a
+recommendation quietly becomes a law.

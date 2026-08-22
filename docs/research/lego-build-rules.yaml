@@ -332,12 +332,36 @@ rules:
 
   - id: B-07
     name: MASONRY_BOND
-    tier: HARD
+    tier: DISCOURAGED
     source_tier: P1
-    statement: "Courses must overlap; vertical seams must not repeat between adjacent courses."
+    statement: "Bricks and plates should overlap wherever possible; vertical seams should not repeat between adjacent courses."
     check: grid
     predicate: "no coincident vertical seam x between adjacent courses; min overlap 2 studs"
     confidence: high
+    note: >
+      DEMOTED HARD -> DISCOURAGED 2026-08-22, statement softened to match its
+      source. See -ref-legality.md section B-07, where this is filed as
+      BDP_STABILITY: the BrickLink Designer Program's *Stability* guidance says
+      bricks and plates "should overlap whenever possible", conceding in the
+      same breath that building in stacks may have visual appeal and weighing
+      that against the model staying together. A stability recommendation with
+      an explicit escape clause, not a legality constraint -- a stacked seam
+      makes a wall weaker, never unbuildable. This corpus had escalated
+      "should, wherever possible" into "must", which no source supports.
+
+      Implemented in ldraw-verify and measured: 6.1% of real released sets have
+      a repeated seam between adjacent brick courses (244-model sample,
+      verified genuine by coordinates in 10133-1), and 10 of those 244 were
+      gated by B-07 alone. Demoting took exit-1 from 24.2% to 20.1%.
+
+      Only the seam clause is implemented. The source's other stability
+      sentences -- drooping walls, normal building pressure, pressing parts down
+      on a flat surface -- are judgement or physical test. Note also that
+      -ref-legality.md's summary table marks B-07's checkable column "No" while
+      its prose says "Partly" and gives this exact predicate, and -ref-ldraw.md
+      twice files seam staggering under aesthetic judgement. The research is not
+      internally consistent about whether this is checkable; the implemented
+      rule takes the prose reading.
 
   - id: B-08
     name: TECHNIC_SMOOTHNESS
