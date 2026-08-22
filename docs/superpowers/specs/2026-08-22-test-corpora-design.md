@@ -162,9 +162,9 @@ Choose for **coverage of the properties the rules actually exercise**, not for v
 | Curved and sloped | `E-01` tolerance, elliptical slopes, near-miss angles | `10179-1` |
 | Minifigure-heavy | Clip and bar connections — the known `SNAP_CLP` gap | `41588-1` |
 | Hinged / articulated | `B-05` rotation, hinge detents | `8448-1` |
-| **Flex-path** | `0 !LDCAD GENERATED` geometry — **excluded from GOLD**, kept in WILD as a known hazard | `8466-1` (1,327 parts but 311,434 lines), `8448-1` (183,704 lines) |
+| **Flex-path** | `0 !LDCAD GENERATED` geometry — **excluded from GOLD**, kept in WILD as a known hazard | **200 models, 13.7% of the corpus** — full inventory in [`../../research/2026-08-22-flex-path-inventory.md`](../../research/2026-08-22-flex-path-inventory.md). Worst: `8466-1` (1,327 parts, 311,435 lines) |
 
-That last row is worth its own note: a 1,300-part model with 300,000 lines is almost entirely generated flex geometry. Those files broke assumptions repeatedly during the build and should never sit in a precision corpus.
+That last row is worth its own note, and it is larger than it first appeared. A full scan found **200 models — 13.7% of the corpus — carrying 1,008 generated blocks and 680,623 inline polygons**: 887 `PATH` configurations (hoses, cables, chains) and 108 `SPRING`. LDCad writes this geometry as *fallback* content and regenerates it whenever endpoints move, so it is a snapshot rather than the model. It is raw polygons with no part identity, invisible to every rule the tool has, and it breaks the inventory cross-check in §4.1 because a hose modelled this way contributes no type-1 references. Excluding 200 models is a real cut to GOLD's size and is taken deliberately: the oracle argument requires that what the verifier sees is what the builder built, and here it is not. Full inventory and reasoning in [`../../research/2026-08-22-flex-path-inventory.md`](../../research/2026-08-22-flex-path-inventory.md).
 
 **Target composition for the hand-verified core: 20 models.** Five tiny-to-small per era band across the three oldest bands, weighted toward small sets so the work is finishable, with at least one from each technique class. That is roughly 12–15 hours of verification — enough to calibrate the automated check without becoming the project.
 
