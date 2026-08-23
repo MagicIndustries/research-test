@@ -2,6 +2,7 @@ import { BrickieChecker, type Category, type CheckReport } from "brickie-check";
 import { LibraryIndex, parseDocument, resolveModel, translationOf } from "ldraw-verify";
 import { ChiralityIndex } from "./chirality.js";
 import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { mirrorMpd } from "./mpd.js";
 
 export interface Candidate {
@@ -21,7 +22,43 @@ export interface Candidate {
   report: CheckReport;
 }
 
-export type Rejection = "identical" | "trivial" | "already-exists";
+export type Rejection = "identical" | "trivial" | "already-exists" | "too-similar";
+
+/**
+ * Cell size for the occupancy grid used to compare shapes, in LDU. One stud
+ * pitch: fine enough to tell two hairstyles apart, coarse enough that two
+ * builds of the same silhouette out of different parts still match.
+ */
+const OCCUPANCY_CELL = 20;
+
+/**
+ * How much a candidate may overlap an existing template before it is redundant.
+ *
+ * Overlap is measured against every template EXCEPT the candidate's own source.
+ * That exclusion is essential: a mirror always occupies roughly its source's
+ * volume -- `hair_mullet` mirrored overlaps `hair_mullet` at 0.89 -- and that is
+ * inherent to mirroring, not evidence of duplication.
+ *
+ * Overlap with the nearest OTHER template runs 0.80, 0.80, 0.76, 0.75, 0.75,
+ * 0.74, 0.73, 0.68 and down -- a continuum with no natural break, so any
+ * threshold is a judgement rather than a discovery. The yield it buys:
+ *
+ * | max similarity | parts |
+ * |---|---|
+ * | 0.70 | 6 |
+ * | 0.75 | 8 |
+ * | **0.80** | **11** |
+ * | 0.85 | 14 |
+ * | 0.90 | 20 |
+ * | off | 35 |
+ *
+ * 0.80 is where `hair_left_swept_back` mirrored measures against the existing
+ * `hair_right_swept_back` -- a case a human looking at the gallery identified
+ * as something the corpus already had. Anchoring the default to a judgement
+ * someone actually made beats picking a round number, and `--max-similarity`
+ * moves it.
+ */
+export const DEFAULT_MAX_SIMILARITY = 0.8;
 
 /**
  * Least share of a model the mirror must change to count as a new part.
@@ -120,6 +157,55 @@ export class CorpusIndex {
     return new CorpusIndex(shapes);
   }
 
+  /**
+   * Add an accepted candidate so later ones are compared against it too.
+   *
+   * Without this the run checks each candidate against the corpus but never
+   * against its own output, and two sources can mirror to near-identical
+   * results: `hair_bob_angle_fringe` and `hair_neat_short_bob` mirrored
+   * overlap each other at 0.94 while each sits comfortably clear of anything
+   * pre-existing.
+   */
+  add(category: Category, name: string, shape: string[]): void {
+    const list = this.shapes.get(category);
+    if (list) list.push({ name, shape });
+    else this.shapes.set(category, [{ name, shape }]);
+  }
+
+  /** Coarse occupancy of a shape, for comparing silhouettes rather than construction. */
+  static occupancy(shape: string[]): Set<string> {
+    return new Set(
+      shape.map((k) => {
+        const at = k.slice(k.indexOf("@") + 1).split(",").map(Number);
+        return at.map((v) => Math.floor(v / OCCUPANCY_CELL)).join(",");
+      }),
+    );
+  }
+
+  /**
+   * The most similar existing template by silhouette, ignoring `exclude`.
+   *
+   * Exact placement comparison is not enough here. `hair_left_swept_back` and
+   * `hair_right_swept_back` are both in the corpus and look like mirror twins,
+   * but they were hand-built differently enough that they share no
+   * part-at-position at all -- 200% apart by placement, 0.83 overlapping by
+   * geometry. Mirroring either one produces something the corpus already has,
+   * and only a shape comparison sees it.
+   */
+  mostSimilar(category: Category, candidate: string[], exclude?: string): { name: string; overlap: number } | undefined {
+    const o = CorpusIndex.occupancy(candidate);
+    let best: { name: string; overlap: number } | undefined;
+    for (const c of this.shapes.get(category) ?? []) {
+      if (c.name === exclude) continue;
+      const p = CorpusIndex.occupancy(c.shape);
+      let hit = 0;
+      for (const k of o) if (p.has(k)) hit++;
+      const overlap = hit / (o.size + p.size - hit);
+      if (best === undefined || overlap > best.overlap) best = { name: c.name, overlap };
+    }
+    return best;
+  }
+
   /** The closest existing template to a candidate, and how far apart they are. */
   nearest(category: Category, candidate: string[]): { name: string; ratio: number } | undefined {
     let best: { name: string; ratio: number } | undefined;
@@ -141,6 +227,8 @@ export interface GenerateOptions {
   chirality: ChiralityIndex;
   /** Built once per run; without it a candidate is only compared to its own source. */
   corpus?: CorpusIndex;
+  /** Defaults to DEFAULT_MAX_SIMILARITY. */
+  maxSimilarity?: number;
 }
 
 /**
@@ -177,6 +265,13 @@ export async function generateMirror(
   if (nearest !== undefined && nearest.ratio < (opts.minChange ?? DEFAULT_MIN_CHANGE)) {
     return { rejected: "already-exists", matches: nearest.name };
   }
+  // ...and by silhouette, against everything except its own source, because
+  // the corpus's hand-authored left/right pairs are built differently enough
+  // that an exact comparison never sees them as the same shape.
+  const similar = opts.corpus?.mostSimilar(opts.category, shape(text, path, opts.library), basename(path));
+  if (similar !== undefined && similar.overlap >= (opts.maxSimilarity ?? DEFAULT_MAX_SIMILARITY)) {
+    return { rejected: "too-similar", matches: `${similar.name} (${(similar.overlap * 100).toFixed(0)}% overlap)` };
+  }
   const report = await opts.checker.checkText(text, path, opts.category);
   return {
     source: path,
@@ -192,6 +287,11 @@ export async function generateMirror(
 }
 
 export { ChiralityIndex } from "./chirality.js";
+
+/** The candidate's resolved shape, for feeding back into a CorpusIndex. */
+export function candidateShape(c: Candidate, lib: LibraryIndex): string[] {
+  return shape(c.text, c.source, lib);
+}
 
 export function isCandidate(r: Candidate | { rejected: Rejection; matches?: string }): r is Candidate {
   return !("rejected" in r);

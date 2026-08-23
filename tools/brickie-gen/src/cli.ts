@@ -2,7 +2,7 @@ import { BrickieChecker, CATEGORIES, type Category } from "brickie-check";
 import { LibraryIndex } from "ldraw-verify";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
-import { ChiralityIndex, CorpusIndex, generateMirror, isCandidate } from "./generate.js";
+import { ChiralityIndex, CorpusIndex, candidateShape, generateMirror, isCandidate } from "./generate.js";
 
 const ESC = "\u001b[";
 const RESET = `${ESC}0m`;
@@ -13,6 +13,7 @@ function usage(): never {
   --library <dir>   LDraw parts library    (default: $LDRAW_DIR or .cache/ldraw)
   --shadow <dir>    LDCad shadow library   (default: $LDCAD_SHADOW_DIR)
   --corpus <dir>    templates to check candidates against (default: the input dir)
+  --max-similarity  silhouette overlap above which a candidate is redundant (default 0.7)
   --keep-unclean    write candidates that fail brickie-check as well
 
 Mirrors each source through X=0. A source whose mirror reproduces it is
@@ -57,7 +58,11 @@ let written = 0;
 let duplicates = 0;
 let unclean = 0;
 for (const file of files) {
-  const r = await generateMirror(file, { checker, library, category, chirality, corpus });
+  const maxSim = flag("--max-similarity");
+  const r = await generateMirror(file, {
+    checker, library, category, chirality, corpus,
+    ...(maxSim !== undefined ? { maxSimilarity: Number(maxSim) } : {}),
+  });
   if (!isCandidate(r)) {
     duplicates++;
     const why =
@@ -65,7 +70,9 @@ for (const file of files) {
         ? "mirror reproduces the source"
         : r.rejected === "trivial"
           ? "mirror changes too little to be a new part"
-          : `mirror already exists as ${r.matches}`;
+          : r.rejected === "already-exists"
+            ? `mirror already exists as ${r.matches}`
+            : `too similar to ${r.matches}`;
     console.log(`${ESC}90mskip${RESET}  ${basename(file)} — ${why}`);
     continue;
   }
@@ -77,6 +84,9 @@ for (const file of files) {
     continue;
   }
   const name = basename(file).replace(/\.mpd$/i, "") + "_mirrored.mpd";
+  // Fold it back in so later candidates are compared against it as well as
+  // against the original corpus.
+  corpus.add(category, name, candidateShape(r, library));
   await writeFile(join(out, name), r.text);
   written++;
   const pct = `${(r.changeRatio * 100).toFixed(0)}% changed`;
