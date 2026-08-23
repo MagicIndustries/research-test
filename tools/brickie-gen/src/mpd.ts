@@ -15,8 +15,6 @@ export interface RewriteResult {
   text: string;
   placements: number;
   patterned: string[];
-  /** Superseded LDraw filenames rewritten to the current one, as `from -> to`. */
-  aliasesResolved: string[];
   /** Printed parts moved to the mirrored position with their print left unflipped. */
   printsPreserved: string[];
   /** Handed parts swapped for their opposite-handed counterpart, as `from -> to`. */
@@ -32,15 +30,11 @@ export interface RewriteResult {
 /** Looks up a part's opposite-handed counterpart, or undefined if it has none. */
 export type HandResolver = (partId: string) => { handed: boolean; counterpart?: string };
 
-/** Looks up a superseded filename's replacement, or undefined if the part is current. */
-export type AliasResolver = (partId: string) => string | undefined;
-
 /**
- * A part reference always carries its extension. The `~Moved to 3023b` header
- * a replacement comes from does NOT, and substituting it raw emits `3023b`,
- * which no loader resolves -- the part silently vanishes from the render while
- * the line count stays the same. Six plates per Legs template disappeared this
- * way before this existed.
+ * A part reference always carries its extension; an id looked up from a library
+ * header may not. Substituting one raw emits something like `3023b`, which no
+ * loader resolves -- the part silently vanishes from the render while the line
+ * count stays the same. That happened, to six plates per Legs template.
  */
 function withExtension(partId: string): string {
   return /\.(dat|ldr|mpd)$/i.test(partId) ? partId : `${partId}.dat`;
@@ -49,16 +43,22 @@ function withExtension(partId: string): string {
 const TYPE1 = /^(\s*)1(\s+)(\S+)(\s+)(\S+\s+\S+\s+\S+)(\s+)((?:\S+\s+){8}\S+)(\s+)(\S+)\s*$/;
 
 /**
- * `resolveAlias` is optional but wanted. The corpus references five deprecated
- * `~Moved to` aliases across 220 placements, and a newly generated part has no
- * business inheriting one: the alias resolves today and stops resolving when
- * the LDraw library drops it. Carrying it forward would also mean every
- * generated part fails `brickie-check`'s `deprecated` check for a defect it
- * did not introduce.
+ * Part ids are carried through untouched apart from a chirality swap.
+ *
+ * An earlier version rewrote `~Moved to` filenames to their replacement, on the
+ * belief that those marked deprecated parts. They do not -- `~Moved to` is an
+ * LDraw FILENAME redirect and 3023 is Plate 1x2, in everyday production. The
+ * rewrite therefore fixed nothing, and it introduced a real defect: the
+ * replacement id comes from a header that carries no extension, so it emitted
+ * `3023b`, which no loader resolves, and six plates per Legs template vanished
+ * from the render.
+ *
+ * Whether the SOURCE templates should use current filenames is a question for
+ * the templates (emagineer-core #60). It is not this tool's business to answer
+ * it silently while doing something else.
  */
-export function mirrorMpd(text: string, resolveAlias?: AliasResolver, resolveHand?: HandResolver): RewriteResult {
+export function mirrorMpd(text: string, resolveHand?: HandResolver): RewriteResult {
   const patterned = new Set<string>();
-  const aliases = new Map<string, string>();
   const prints = new Set<string>();
   const swapped = new Map<string, string>();
   const unresolved = new Set<string>();
@@ -75,10 +75,7 @@ export function mirrorMpd(text: string, resolveAlias?: AliasResolver, resolveHan
       m: nums.slice(3, 12),
       part: part as string,
     };
-    const current = resolveAlias?.(p.part);
-    const currentId = current === undefined ? undefined : withExtension(current);
-    if (currentId !== undefined) aliases.set(p.part, currentId);
-    let emit = currentId ?? p.part;
+    let emit = p.part;
 
     // Printed first: its print must not be reflected whatever else is true of
     // it, and a printed part is never swapped for a counterpart, because the
@@ -111,7 +108,6 @@ export function mirrorMpd(text: string, resolveAlias?: AliasResolver, resolveHan
     text: out.join("\n"),
     placements,
     patterned: [...patterned],
-    aliasesResolved: [...aliases].map(([from, to]) => `${from} -> ${to}`),
     printsPreserved: [...prints],
     handSwapped: [...swapped].map(([from, to]) => `${from} -> ${to}`),
     handUnresolved: [...unresolved],

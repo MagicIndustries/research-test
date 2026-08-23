@@ -10,8 +10,6 @@ export interface Candidate {
   text: string;
   /** Parts whose print would be mirrored too -- see `isPatterned`. */
   patterned: string[];
-  /** Superseded LDraw filenames rewritten on the way through. */
-  aliasesResolved: string[];
   /** Printed parts moved to the mirrored position with the print left unflipped. */
   printsPreserved: string[];
   /** Handed parts swapped for their opposite-handed counterpart. */
@@ -56,8 +54,26 @@ function shape(text: string, path: string, lib: LibraryIndex): string[] {
   const model = resolveModel(parseDocument(text, path), lib);
   return model.placements.map((p) => {
     const t = translationOf(p.world);
-    return `${canonical(p.partId, lib)}@${t.map((v) => Math.round(v)).join(",")}`;
+    return `${sameElement(p.partId, lib)}@${t.map((v) => Math.round(v)).join(",")}`;
   });
+}
+
+/**
+ * A key that is equal for two filenames naming the same physical element.
+ *
+ * This corpus uses `3023.dat` in 72 templates and `3023b.dat` in 112, and they
+ * are the same Plate 1x2 -- LDraw renumbered the file and both names still
+ * resolve. Comparing the raw ids makes a mirror look like a new part whenever
+ * the source happened to mix them, which inflated the yield by three.
+ *
+ * Used ONLY for this comparison. The emitted part id is whatever the source
+ * had: rewriting filenames in the output fixes nothing and previously broke
+ * every Legs render -- see mirrorMpd.
+ */
+function sameElement(partId: string, lib: LibraryIndex): string {
+  const p = lib.get(partId);
+  const id = p?.isAlias === true && p.movedTo !== undefined ? p.movedTo : partId;
+  return id.toLowerCase().replace(/\.dat$/, "");
 }
 
 /** Share of the source's placements that the mirror moves, adds or removes. */
@@ -70,24 +86,6 @@ function changeRatio(a: string[], b: string[]): number {
   return diff / a.length;
 }
 
-/**
- * A part id with any deprecated alias resolved to the part it moved to.
- *
- * Both sides of the duplicate comparison must be canonicalised or the
- * comparison measures the wrong thing. The generator rewrites `3023` to
- * `3023b` on the way through, so a mirrored part differs from its source on
- * that substitution alone -- and comparing raw ids made every candidate look
- * new. That took the yield from 77 to 118 with no extra parts in it.
- */
-function canonical(partId: string, lib: LibraryIndex): string {
-  const p = lib.get(partId);
-  const id = p?.isAlias === true && p.movedTo !== undefined ? p.movedTo : partId;
-  // `movedTo` comes from the "~Moved to 3023b" header, which carries no
-  // extension, while a placement's part id does. Comparing them raw left every
-  // alias-bearing source looking different from its own mirror -- Legs went
-  // from 28 duplicates detected to 1, and the yield inflated from 77 to 123.
-  return id.toLowerCase().replace(/\.dat$/, "");
-}
 
 export interface GenerateOptions {
   checker: BrickieChecker;
@@ -117,19 +115,13 @@ export async function generateMirror(
   opts: GenerateOptions,
 ): Promise<Candidate | { rejected: Rejection }> {
   const src = await readFile(path, "utf8");
-  const { text, patterned, aliasesResolved, printsPreserved, handSwapped, handUnresolved } = mirrorMpd(
-    src,
-    (id) => {
-      const p = opts.library.get(id);
-      return p?.isAlias === true ? p.movedTo : undefined;
-    },
-    (id) => ({
+  const { text, patterned, printsPreserved, handSwapped, handUnresolved } = mirrorMpd(src, (id) => {
+    const counterpart = opts.chirality.counterpart(opts.library, id);
+    return {
       handed: opts.chirality.isHanded(opts.library, id),
-      ...(opts.chirality.counterpart(opts.library, id) !== undefined
-        ? { counterpart: opts.chirality.counterpart(opts.library, id) as string }
-        : {}),
-    }),
-  );
+      ...(counterpart !== undefined ? { counterpart } : {}),
+    };
+  });
   const ratio = changeRatio(shape(src, path, opts.library), shape(text, path, opts.library));
   if (ratio === 0) return { rejected: "identical" };
   if (ratio < (opts.minChange ?? DEFAULT_MIN_CHANGE)) return { rejected: "trivial" };
@@ -139,7 +131,6 @@ export async function generateMirror(
     operation: "mirror",
     text,
     patterned,
-    aliasesResolved,
     printsPreserved,
     handSwapped,
     handUnresolved,

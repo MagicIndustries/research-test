@@ -120,7 +120,7 @@ describe("printed parts move but do not flip", () => {
   });
 
   it("never substitutes a counterpart for a printed part, whose print would differ", () => {
-    const r = mirrorMpd("1 4 30 0 0 1 0 0 0 1 0 0 0 1 29119pz9.dat", undefined, () => ({
+    const r = mirrorMpd("1 4 30 0 0 1 0 0 0 1 0 0 0 1 29119pz9.dat", () => ({
       handed: true,
       counterpart: "29120.dat",
     }));
@@ -134,7 +134,7 @@ describe("chirality", () => {
   // elements, not one element reflected. Mirroring the matrix alone yields a
   // shape no part matches: correct silhouette, unbuildable.
   it("swaps a handed part for its counterpart and mirrors it", () => {
-    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 29119.dat", undefined, (id) =>
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 29119.dat", (id) =>
       id === "29119.dat" ? { handed: true, counterpart: "29120.dat" } : { handed: false },
     );
     expect(r.handSwapped).toEqual(["29119.dat -> 29120.dat"]);
@@ -143,14 +143,34 @@ describe("chirality", () => {
   });
 
   it("reports a handed part with no counterpart rather than assuming it is safe", () => {
-    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 10177b.dat", undefined, () => ({ handed: true }));
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 10177b.dat", () => ({ handed: true }));
     expect(r.handUnresolved).toEqual(["10177b.dat"]);
     expect(r.handSwapped).toEqual([]);
   });
 
   it("leaves an unhanded part alone", () => {
-    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 3024.dat", undefined, () => ({ handed: false }));
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 3024.dat", () => ({ handed: false }));
     expect(r.handSwapped).toEqual([]);
     expect(r.handUnresolved).toEqual([]);
+  });
+});
+
+describe("part ids are carried through untouched", () => {
+  // An earlier version rewrote `~Moved to` filenames, believing they marked
+  // deprecated parts. They mark a FILENAME redirect: 3023 is Plate 1x2, in
+  // everyday production. The rewrite fixed nothing and emitted `3023b` without
+  // an extension, which no loader resolves.
+  it("leaves a superseded filename exactly as the source had it", () => {
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 3023.dat");
+    expect(r.text).toContain("3023.dat");
+    expect(r.text).not.toContain("3023b");
+  });
+
+  it("keeps the extension when a chirality swap does substitute", () => {
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 29119.dat", () => ({
+      handed: true,
+      counterpart: "29120",
+    }));
+    expect(r.text).toContain("29120.dat");
   });
 });

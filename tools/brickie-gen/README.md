@@ -34,17 +34,33 @@ whatever it did not understand.
 | | |
 |---|---|
 | Sources | 199 |
-| Rejected — mirror reproduces the source, or changes too little | 109 |
-| **New parts written** | **86** |
-| Failed `brickie-check` | 4 |
+| Rejected — mirror reproduces the source, or changes too little | 147 |
+| **New parts written** | **49** |
+| Failed `brickie-check` | 3 |
 
 | category | new parts |
 |---|---|
-| Hair | 53 |
-| Legs | 28 |
+| Hair | 41 |
 | Body | 5 |
+| Legs | 3 |
 | Head | **0** |
 | HeadAccessory | 0 |
+
+## Part ids are carried through untouched
+
+An earlier version rewrote `~Moved to` filenames to their replacement,
+believing those marked deprecated parts. They do not — it is an LDraw
+*filename* redirect, and `3023` is Plate 1x2, in everyday production.
+
+The rewrite fixed nothing and broke a great deal. The replacement id comes from
+a header carrying no extension, so it emitted `3023b`, which no loader
+resolves: six plates per Legs template vanished from the render while the line
+count, the piece count and every check stayed happy. It was caught by looking
+at the pictures. `brickie-check` now has a `resolves` check for it.
+
+It also inflated the yield, because unresolved parts drop out of the resolved
+model and made a mirror look different from its source when it was the same
+part with holes in it. **Legs fell from 28 apparent new parts to 3.**
 
 ## Printed elements move; they do not flip
 
@@ -64,8 +80,7 @@ them unbuildable.
 Some elements exist as a left/right pair under separate part numbers. `29119`
 and `29120` are Slope Brick Curved 2x1 with Cutout Right and Left. Reflecting
 the matrix alone gives a shape no element matches — the right silhouette,
-unbuildable. Ten parts in the current output involve such a swap; before this,
-all ten were wrong.
+unbuildable. Ten of the 49 parts here involve such a swap; before this, all ten were wrong.
 
 Counterparts are found by swapping "Left" and "Right" in the LDraw description.
 Over the placeable library, 2,235 parts name a hand and 1,936 (87%) have a
