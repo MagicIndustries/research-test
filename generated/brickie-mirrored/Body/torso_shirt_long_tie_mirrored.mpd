@@ -1,0 +1,139 @@
+0 FILE torso_shirt_long_tie.io
+0 Untitled Model
+0 Name:  torso_shirt_long_tie
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  31
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_core_a
+0 STEP
+1 16 -10 0 -0.0001 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_colour_1_a
+0 STEP
+1 16 -10.0002 -16 0 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_core_b
+0 STEP
+1 16 -0.0001 -32 -0.0003 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_colour_1_b
+0 STEP
+1 16 -6.3334 0.0001 -16.3338 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_colour_2_a
+0 STEP
+1 0 3.9999 -30.0001 -30.0007 0 -1 0 1 0 0 0 0 1 63864.dat
+0 STEP
+1 16 3.9999 0 -30.0007 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_colour_2_b
+0 STEP
+1 16 8 -16 0 1 0 0 0 1 0 0 0 1 torso_shirt_long_tie_colour_1_c
+0 STEP
+1 16 16 -1.9701 0 -1 0 0 0 1 0 0 0 -1 torso_shirt_long_tie_skin
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_core_a
+0 torso_shirt_long_tie_core_a
+0 Name:  torso_shirt_long_tie_core_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  3
+1 71 0 -8 0 -1 0 0 0 1 0 0 0 -1 4032a.dat
+0 STEP
+1 71 0 -32 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+1 71 0 -56 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_colour_1_a
+0 torso_shirt_long_tie_colour_1_a
+0 Name:  torso_shirt_long_tie_colour_1_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 1 40 -40 -30.0006 0 0 1 0 1 0 -1 0 0 32952.dat
+0 STEP
+1 1 -20 -40 -30.0006 0 0 -1 0 1 0 1 0 0 32952.dat
+0 STEP
+1 1 -20.0001 -8 0.0003 0 0 1 0 1 0 -1 0 0 3023b.dat
+1 1 40.0001 -8 0.0001 0 0 1 0 1 0 -1 0 0 3023b.dat
+0 STEP
+1 1 10 -8 30.0001 -1 0 0 0 1 0 0 0 -1 3710.dat
+0 STEP
+1 1 10 -32 30.0001 -1 0 0 0 1 0 0 0 -1 3010.dat
+0 STEP
+1 1 -20.0001 -16 0.0003 0 0 1 0 1 0 -1 0 0 3023b.dat
+1 1 40.0001 -16 0.0001 0 0 1 0 1 0 -1 0 0 3023b.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_core_b
+0 torso_shirt_long_tie_core_b
+0 Name:  torso_shirt_long_tie_core_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 71 40.0001 -40 -0.0002 0 0 -1 0 1 0 1 0 0 22885.dat
+1 71 -20.0002 -40 0.0002 0 0 1 0 1 0 -1 0 0 22885.dat
+0 NOFILE
+0 FILE torso_shirt_long_tie_colour_1_b
+0 torso_shirt_long_tie_colour_1_b
+0 Name:  torso_shirt_long_tie_colour_1_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  6
+1 1 0 -24 30.0003 -1 0 0 0 1 0 0 0 -1 3010.dat
+0 STEP
+1 1 30 -32 -30.0004 -1 0 0 0 1 0 0 0 -1 3005.dat
+1 1 -30 -32 -30.0004 -1 0 0 0 1 0 0 0 -1 3005.dat
+0 STEP
+1 1 30.0001 -32 -10 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -30.0002 -32 -9.9995 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 0 -32 20 -1 0 0 0 1 0 0 0 -1 3020.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_colour_2_a
+0 torso_shirt_long_tie_colour_2_a
+0 Name:  torso_shirt_long_tie_colour_2_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  3
+1 226 6.3334 -64.0001 6.3338 1 0 0 0 1 0 0 0 1 3023b.dat
+0 STEP
+1 226 2.3333 -30.0001 -13.6669 0 -1 0 -1 0 0 0 0 -1 3623.dat
+1 226 -5.6667 -30.0001 -13.6669 0 -1 0 -1 0 0 0 0 -1 3623.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_colour_2_b
+0 torso_shirt_long_tie_colour_2_b
+0 Name:  torso_shirt_long_tie_colour_2_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 226 8 -30 0 0 1 0 -1 0 0 0 0 1 3623.dat
+0 STEP
+1 226 0 -30 0 0 1 0 1 0 0 0 0 -1 63864.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_colour_1_c
+0 torso_shirt_long_tie_colour_1_c
+0 Name:  torso_shirt_long_tie_colour_1_c
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  4
+1 1 -56 -20 0.0002 0 1 0 1 0 0 0 0 -1 3022.dat
+1 1 40.0001 -20 -0.0002 0 -1 0 1 0 0 0 0 1 3022.dat
+0 STEP
+1 1 -64.0002 -29.9999 0.0002 0 1 0 0 0 -1 -1 0 0 3069b.dat
+1 1 48.0001 -30.0002 -0.0002 0 -1 0 0 0 -1 1 0 0 3069b.dat
+0 STEP
+0 NOFILE
+0 FILE torso_shirt_long_tie_skin
+0 torso_shirt_long_tie_skin
+0 Name:  torso_shirt_long_tie_skin
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 19 72.0002 -24.0299 -0.0002 0 -1 0 0 0 -1 1 0 0 11476.dat
+1 19 -40.0002 -24.0299 0.0002 0 1 0 0 0 -1 -1 0 0 11476.dat
+0 NOFILE

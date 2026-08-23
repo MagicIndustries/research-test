@@ -1,0 +1,74 @@
+0 FILE dress_side_long.io
+0 Untitled Model
+0 Name:  dress_side_long
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  24
+1 71 0 56 0 1 0 0 0 1 0 0 0 1 3032.dat
+0 STEP
+1 16 -9.9999 56 0 0 0 1 0 1 0 -1 0 0 dress_side_long_shoes
+0 STEP
+1 16 -9.9999 48 0.0002 0 0 1 0 1 0 -1 0 0 dress_side_long_skin
+0 STEP
+1 16 -14.3522 48 0.0002 1 0 0 0 1 0 0 0 1 dress_side_long_colour_1
+0 STEP
+0 NOFILE
+0 FILE dress_side_long_shoes
+0 dress_side_long_shoes
+0 Name:  dress_side_long_shoes
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 0 0 -8 40.0001 -1 0 0 0 1 0 0 0 -1 3023b
+1 0 0 -8 -20.0001 -1 0 0 0 1 0 0 0 -1 3023b
+0 NOFILE
+0 FILE dress_side_long_skin
+0 dress_side_long_skin
+0 Name:  dress_side_long_skin
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  4
+1 19 0.0002 -8 40.0001 -1 0 0 0 1 0 0 0 -1 3023b.dat
+1 19 0.0002 -8 -20.0001 -1 0 0 0 1 0 0 0 -1 3023b.dat
+0 STEP
+1 19 0.0002 -16 40.0001 -1 0 0 0 1 0 0 0 -1 3023b.dat
+1 19 -0.0006 -16 -20.0001 -1 0 0 0 1 0 0 0 -1 3023b.dat
+0 STEP
+0 NOFILE
+0 FILE dress_side_long_colour_1
+0 dress_side_long_colour_1
+0 Name:  dress_side_long_colour_1
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  17
+1 1 44.3528 -40 0 0 0 -1 0 1 0 1 0 0 11211.dat
+1 1 -15.6469 -40 0 0 0 1 0 1 0 -1 0 0 11211.dat
+0 STEP
+1 1 62.3527 -20 0 0 -1 0 0 0 1 -1 0 0 87079.dat
+0 STEP
+1 1 44.3528 -40 29.9999 -1 0 0 0 1 0 0 0 -1 26604.dat
+1 1 44.3528 -40 -29.9999 0 0 -1 0 1 0 1 0 0 26604.dat
+0 STEP
+1 1 24.3529 -20 -47.9998 0 0 1 1 0 0 0 1 0 43722a
+1 1 24.3529 -20 47.9998 0 0 1 -1 0 0 0 -1 0 43723a
+0 STEP
+1 1 14.3529 -40 29.9999 -1 0 0 0 1 0 0 0 -1 11211.dat
+1 1 14.3529 -40 -29.9999 1 0 0 0 1 0 0 0 1 11211.dat
+0 STEP
+1 1 -33.6469 -30 0 0 1 0 0 0 -1 -1 0 0 2431.dat
+0 STEP
+1 1 -15.647 -40 -29.9999 1 0 0 0 1 0 0 0 1 26604.dat
+1 1 -15.6469 -40 29.9999 0 0 1 0 1 0 -1 0 0 26604.dat
+0 STEP
+1 1 -15.6469 -30 47.9998 -1 0 0 0 0 -1 0 -1 0 3070b.dat
+1 1 -15.647 -30 -47.9998 1 0 0 0 0 -1 0 1 0 3070b.dat
+0 STEP
+1 1 14.3529 -40 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 1 14.3529 -48 19.9999 1 0 0 0 1 0 0 0 1 3020.dat
+1 1 14.3529 -48 -19.9999 1 0 0 0 1 0 0 0 1 3020.dat
+0 STEP
+0 NOFILE

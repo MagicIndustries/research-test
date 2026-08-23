@@ -1,0 +1,56 @@
+0 FILE pants_with_boots.io
+0 Untitled Model
+0 Name:  pants_with_boots
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  12
+1 71 0 40 0 1 0 0 0 1 0 0 0 1 3032.dat
+0 STEP
+1 16 -10 40 10 1 0 0 0 1 0 0 0 1 pants_with_boots_shoes
+0 STEP
+1 16 -10 32 -10 1 0 0 0 1 0 0 0 1 pants_with_boots_skin
+0 STEP
+1 16 0 24 0 1 0 0 0 1 0 0 0 1 pants_with_boots_colour_1
+0 STEP
+0 NOFILE
+0 FILE pants_with_boots_shoes
+0 pants_with_boots_shoes
+0 Name:  pants_with_boots_shoes
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  4
+1 0 40 -8 -10 0 0 -1 0 1 0 1 0 0 3023b
+1 0 -20 -8 -10 0 0 -1 0 1 0 1 0 0 3023b
+0 STEP
+1 0 40 -16 0 1 0 0 0 1 0 0 0 1 3024.dat
+1 0 -20 -16 0 1 0 0 0 1 0 0 0 1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE pants_with_boots_skin
+0 pants_with_boots_skin
+0 Name:  pants_with_boots_skin
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 19 40 -8 0 1 0 0 0 1 0 0 0 1 3024.dat
+1 19 -20 -8 0 1 0 0 0 1 0 0 0 1 3024.dat
+0 NOFILE
+0 FILE pants_with_boots_colour_1
+0 pants_with_boots_colour_1
+0 Name:  pants_with_boots_colour_1
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  5
+1 1 30 -8 0 0 0 -1 0 1 0 1 0 0 3023b
+1 1 -30 -8 0 0 0 -1 0 1 0 1 0 0 3023b
+0 STEP
+1 1 0 -16 0 1 0 0 0 1 0 0 0 1 3020.dat
+0 STEP
+1 1 0 -24 20 1 0 0 0 1 0 0 0 1 3020.dat
+1 1 0 -24 -20 1 0 0 0 1 0 0 0 1 3020.dat
+0 STEP
+0 NOFILE

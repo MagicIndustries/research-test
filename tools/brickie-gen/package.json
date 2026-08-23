@@ -1,0 +1,13 @@
+{
+  "name": "brickie-gen",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Generates new brickie parts from the existing corpus, scored by brickie-check.",
+  "bin": { "brickie-gen": "dist/src/cli.js" },
+  "scripts": { "build": "tsc", "test": "vitest run" },
+  "dependencies": {
+    "ldraw-verify": "file:/Users/tobytremayne/work/ldraw-verify",
+    "brickie-check": "file:../brickie-check"
+  },
+  "devDependencies": { "typescript": "^5.5.0", "vitest": "^2.0.0", "@types/node": "^22.0.0" }
+}
