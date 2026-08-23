@@ -71,8 +71,38 @@ the corpus, before the database becomes the source of truth.** Files stay
 canonical until that test passes.
 
 This costs nothing and converts an irreversible migration into a reversible
-one. Store the original text alongside during transition as the fidelity
-anchor; the round-trip test compares against it.
+one.
+
+### What the transition stores, and why it is deletable
+
+Two different questions need answering while files are still being edited, and
+they need different things:
+
+- **"Has this file changed since we imported it?"** — a checksum of the source,
+  per piece. Detects drift between the tree and the catalog. Needed regardless.
+- **"Does our export reproduce the original?"** — needs the original itself.
+
+So store both: a checksum, and a write-once `sourceSnapshot` captured at
+import. The whole template tree is 717 KB across 199 pieces, mean 3.6 KB, so
+storage is not a consideration.
+
+The snapshot lets the round-trip test run **from the database alone** — in CI,
+and after the template tree stops being maintained — and lets the review
+interface show *how* an export differs rather than only that it does.
+
+**Its real cost is not bytes but discipline.** A stored source text is an
+escape hatch: the first time the schema fails to model something, the tempting
+fix is to read it from the snapshot, and that defers ever finishing the schema.
+That is the same shape as the alias rewrite that broke every Legs render — a
+shortcut that looks harmless and hides the actual problem.
+
+So: application code must never read it. Only the round-trip test and the diff
+view touch it, and it moves to an archive table or is dropped at the flip.
+
+The gate disarms its own risk. **If the round-trip test passes on 100% of the
+corpus, the schema provably represents everything, and nothing needs the
+snapshot.** Passing is the licence to delete it — and reluctance to delete it
+is evidence the schema is not finished.
 
 ---
 
@@ -174,6 +204,11 @@ rule that cannot be re-run is not a rule, it is a one-off import.
 ## Review interface
 
 In `@app/hub`, the internal-tooling SPA.
+
+**Single reviewer.** No multi-user review state, no assignment, no
+concurrent-edit resolution. Decided rather than deferred: those are real
+machinery and nothing about the current volume justifies them. Revisit when a
+second reviewer exists.
 
 ### The queue
 
