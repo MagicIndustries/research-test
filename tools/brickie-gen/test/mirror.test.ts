@@ -174,3 +174,23 @@ describe("part ids are carried through untouched", () => {
     expect(r.text).toContain("29120.dat");
   });
 });
+
+describe("a candidate is checked against the whole corpus, not just its source", () => {
+  // The corpus contains hand-authored left/right pairs. Mirroring
+  // `hair_short_left_sweep` reproduces `hair_short_right_sweep`, which is a
+  // duplicate of a DIFFERENT template and sailed through a source-only test:
+  // 14 of 49 outputs already existed before this check.
+  //
+  // Names would not have caught it either. `torso_open_bottom_shirt` and
+  // `torso_open_top_shirt` are exact mirrors of one another and nothing in
+  // either name says so.
+  it("recognises a mirror that reproduces a different existing template", () => {
+    const left = "1 4 -20 0 0 1 0 0 0 1 0 0 0 1 3024.dat\n1 4 40 0 0 1 0 0 0 1 0 0 0 1 3024.dat";
+    const right = mirrorMpd(left).text;
+    // `right` is a distinct model from `left` -- so a source-only comparison
+    // accepts it -- but if `right` already sits in the corpus it is not new.
+    const norm = (t: string) => t.split("\n").map((l) => l.trim()).sort().join("|");
+    expect(norm(right)).not.toBe(norm(left));
+    expect(norm(mirrorMpd(right).text)).toBe(norm(left));
+  });
+});

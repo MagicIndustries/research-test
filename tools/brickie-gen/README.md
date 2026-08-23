@@ -34,17 +34,26 @@ whatever it did not understand.
 | | |
 |---|---|
 | Sources | 199 |
-| Rejected — mirror reproduces the source, or changes too little | 147 |
-| **New parts written** | **49** |
+| Rejected — mirror reproduces the source | 147 |
+| Rejected — mirror already exists elsewhere in the corpus | **14** |
+| **New parts written** | **35** |
 | Failed `brickie-check` | 3 |
 
 | category | new parts |
 |---|---|
-| Hair | 41 |
-| Body | 5 |
+| Hair | 29 |
+| Body | 3 |
 | Legs | 3 |
 | Head | **0** |
 | HeadAccessory | 0 |
+
+## Candidates are compared against the whole corpus
+
+The corpus already contains hand-authored left/right pairs, so mirroring one
+reproduces the other — a duplicate of a *different* template, which a
+source-only comparison accepts. 14 of a previous 49 outputs already existed.
+Names do not reveal it either: `torso_open_bottom_shirt` and
+`torso_open_top_shirt` are exact mirrors and neither name says so.
 
 ## Part ids are carried through untouched
 

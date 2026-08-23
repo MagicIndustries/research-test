@@ -21,7 +21,7 @@ export interface Candidate {
   report: CheckReport;
 }
 
-export type Rejection = "identical" | "trivial";
+export type Rejection = "identical" | "trivial" | "already-exists";
 
 /**
  * Least share of a model the mirror must change to count as a new part.
@@ -87,6 +87,50 @@ function changeRatio(a: string[], b: string[]): number {
 }
 
 
+/**
+ * The shapes of every template already in a category, so a candidate can be
+ * checked against the whole corpus and not just against the source it came
+ * from.
+ *
+ * This exists because comparing a mirror only to its own source is not enough.
+ * The corpus contains hand-authored left/right pairs -- `hair_short_left_sweep`
+ * and `hair_short_right_sweep`, `hair_curled_bob_left_fringe` and its right
+ * twin -- so mirroring one reproduces the other, which is a duplicate of a
+ * DIFFERENT template and passed the source-only test cleanly. 14 of 49 outputs
+ * were already in the corpus before this.
+ *
+ * Names would not have caught it either: `torso_open_bottom_shirt` and
+ * `torso_open_top_shirt` are exact mirrors of each other and nothing in either
+ * name says so.
+ */
+export class CorpusIndex {
+  private constructor(private readonly shapes: Map<Category, Array<{ name: string; shape: string[] }>>) {}
+
+  static async build(
+    dirs: Partial<Record<Category, { dir: string; files: string[] }>>,
+    lib: LibraryIndex,
+    read: (path: string) => Promise<string>,
+  ): Promise<CorpusIndex> {
+    const shapes = new Map<Category, Array<{ name: string; shape: string[] }>>();
+    for (const [cat, entry] of Object.entries(dirs) as Array<[Category, { dir: string; files: string[] }]>) {
+      const list: Array<{ name: string; shape: string[] }> = [];
+      for (const f of entry.files) list.push({ name: f, shape: shape(await read(`${entry.dir}/${f}`), f, lib) });
+      shapes.set(cat, list);
+    }
+    return new CorpusIndex(shapes);
+  }
+
+  /** The closest existing template to a candidate, and how far apart they are. */
+  nearest(category: Category, candidate: string[]): { name: string; ratio: number } | undefined {
+    let best: { name: string; ratio: number } | undefined;
+    for (const c of this.shapes.get(category) ?? []) {
+      const r = changeRatio(candidate, c.shape);
+      if (best === undefined || r < best.ratio) best = { name: c.name, ratio: r };
+    }
+    return best;
+  }
+}
+
 export interface GenerateOptions {
   checker: BrickieChecker;
   library: LibraryIndex;
@@ -95,6 +139,8 @@ export interface GenerateOptions {
   minChange?: number;
   /** Built once per run; see ChiralityIndex. */
   chirality: ChiralityIndex;
+  /** Built once per run; without it a candidate is only compared to its own source. */
+  corpus?: CorpusIndex;
 }
 
 /**
@@ -113,7 +159,7 @@ export interface GenerateOptions {
 export async function generateMirror(
   path: string,
   opts: GenerateOptions,
-): Promise<Candidate | { rejected: Rejection }> {
+): Promise<Candidate | { rejected: Rejection; matches?: string }> {
   const src = await readFile(path, "utf8");
   const { text, patterned, printsPreserved, handSwapped, handUnresolved } = mirrorMpd(src, (id) => {
     const counterpart = opts.chirality.counterpart(opts.library, id);
@@ -125,6 +171,12 @@ export async function generateMirror(
   const ratio = changeRatio(shape(src, path, opts.library), shape(text, path, opts.library));
   if (ratio === 0) return { rejected: "identical" };
   if (ratio < (opts.minChange ?? DEFAULT_MIN_CHANGE)) return { rejected: "trivial" };
+  // ...and against everything else in the category, because the corpus already
+  // contains hand-authored left/right pairs.
+  const nearest = opts.corpus?.nearest(opts.category, shape(text, path, opts.library));
+  if (nearest !== undefined && nearest.ratio < (opts.minChange ?? DEFAULT_MIN_CHANGE)) {
+    return { rejected: "already-exists", matches: nearest.name };
+  }
   const report = await opts.checker.checkText(text, path, opts.category);
   return {
     source: path,
@@ -141,6 +193,6 @@ export async function generateMirror(
 
 export { ChiralityIndex } from "./chirality.js";
 
-export function isCandidate(r: Candidate | { rejected: Rejection }): r is Candidate {
+export function isCandidate(r: Candidate | { rejected: Rejection; matches?: string }): r is Candidate {
   return !("rejected" in r);
 }

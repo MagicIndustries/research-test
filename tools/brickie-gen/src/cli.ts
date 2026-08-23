@@ -1,8 +1,8 @@
 import { BrickieChecker, CATEGORIES, type Category } from "brickie-check";
 import { LibraryIndex } from "ldraw-verify";
-import { mkdir, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import { ChiralityIndex, generateMirror, isCandidate } from "./generate.js";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
+import { ChiralityIndex, CorpusIndex, generateMirror, isCandidate } from "./generate.js";
 
 const ESC = "\u001b[";
 const RESET = `${ESC}0m`;
@@ -12,6 +12,7 @@ function usage(): never {
 
   --library <dir>   LDraw parts library    (default: $LDRAW_DIR or .cache/ldraw)
   --shadow <dir>    LDCad shadow library   (default: $LDCAD_SHADOW_DIR)
+  --corpus <dir>    templates to check candidates against (default: the input dir)
   --keep-unclean    write candidates that fail brickie-check as well
 
 Mirrors each source through X=0. A source whose mirror reproduces it is
@@ -39,6 +40,16 @@ const libraryRoot = flag("--library") ?? process.env["LDRAW_DIR"] ?? ".cache/ldr
 const shadow = flag("--shadow") ?? process.env["LDCAD_SHADOW_DIR"];
 const library = await LibraryIndex.fromDirectory(libraryRoot);
 const chirality = ChiralityIndex.build(library);
+
+// Every template already in this category, so a candidate that reproduces a
+// DIFFERENT existing part is rejected too -- the corpus has hand-authored
+// left/right pairs, and mirroring one of those just makes the other.
+const corpusDir = flag("--corpus") ?? dirname(files[0] as string);
+const corpus = await CorpusIndex.build(
+  { [category]: { dir: corpusDir, files: (await readdir(corpusDir)).filter((f) => f.endsWith(".mpd")) } },
+  library,
+  (p) => readFile(p, "utf8"),
+);
 const checker = await BrickieChecker.create({ libraryRoot, ...(shadow !== undefined ? { shadowDir: shadow } : {}) });
 await mkdir(out, { recursive: true });
 
@@ -46,10 +57,16 @@ let written = 0;
 let duplicates = 0;
 let unclean = 0;
 for (const file of files) {
-  const r = await generateMirror(file, { checker, library, category, chirality });
+  const r = await generateMirror(file, { checker, library, category, chirality, corpus });
   if (!isCandidate(r)) {
     duplicates++;
-    console.log(`${ESC}90mskip${RESET}  ${basename(file)} — ${r.rejected === "identical" ? "mirror reproduces the source" : "mirror changes too little to be a new part"}`);
+    const why =
+      r.rejected === "identical"
+        ? "mirror reproduces the source"
+        : r.rejected === "trivial"
+          ? "mirror changes too little to be a new part"
+          : `mirror already exists as ${r.matches}`;
+    console.log(`${ESC}90mskip${RESET}  ${basename(file)} — ${why}`);
     continue;
   }
   const fails = r.report.findings.filter((f) => f.severity === "fail");
