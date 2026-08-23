@@ -9,7 +9,7 @@ import {
   resolveModel,
 } from "ldraw-verify";
 import { readFile } from "node:fs/promises";
-import { deprecated } from "./checks/deprecated.js";
+import { supersededFilename } from "./checks/supersededFilename.js";
 import { interfaceContract } from "./checks/interfaceContract.js";
 import { orientation } from "./checks/orientation.js";
 import { orthogonal } from "./checks/orthogonal.js";
@@ -23,7 +23,7 @@ import type { Check, CheckContext, CheckReport } from "./types.js";
 const STUD_RADIUS = 6;
 const STUD_RADIUS_TOL = 0.5;
 
-export const ALL_CHECKS: Check[] = [orthogonal, deprecated, interfaceContract, symmetry, orientation, size, vocabulary];
+export const ALL_CHECKS: Check[] = [orthogonal, supersededFilename, interfaceContract, symmetry, orientation, size, vocabulary];
 
 export interface CheckerOptions {
   libraryRoot: string;

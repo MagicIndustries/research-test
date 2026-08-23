@@ -295,11 +295,14 @@ whether the result looks like a person.** Nothing measured here distinguishes a
 good caricature from a bad one, and that judgement is the part of the master
 builder's job this analysis cannot stand in for.
 
-## Fix available now: one deprecated part
+## Fix available now: one superseded filename
 
-The 226 `E-07` findings come from just five aliases, and one accounts for 95%:
+The 226 `E-07` findings come from five superseded LDraw filenames, one
+accounting for 95%. These are **filename redirects, not retired parts** — 3023
+is Plate 1x2 and is in everyday production; the library simply renumbered the
+file. Worth fixing as hygiene, not as a defect:
 
-| reference | uses | should be |
+| reference | uses | redirects to |
 |---|---|---|
 | `3023.dat` | **208** | `3023b.dat` |
 | `43722.dat` | 5 | `43722a.dat` |

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { orthogonal } from "../src/checks/orthogonal.js";
 import { symmetry } from "../src/checks/symmetry.js";
 import { interfaceContract } from "../src/checks/interfaceContract.js";
-import { deprecated } from "../src/checks/deprecated.js";
+import { supersededFilename } from "../src/checks/supersededFilename.js";
 import { orientation } from "../src/checks/orientation.js";
 import type { CheckContext } from "../src/types.js";
 
@@ -66,10 +66,15 @@ describe("symmetry", () => {
   });
 });
 
-describe("deprecated", () => {
-  it("fails a ~Moved to alias", () => {
-    const f = deprecated.run(ctx({ placements: [{ index: 0, partId: "3023.dat", world: at(0, 0, 0) }], isAlias: (p) => p === "3023.dat" }));
-    expect(f[0]?.severity).toBe("fail");
+describe("superseded filename", () => {
+  // A note, not a failure. `~Moved to` redirects a FILENAME; 3023 is Plate 1x2
+  // and is in everyday production. Treating it as a defect once made 78 corpus
+  // templates fail for something that changes nothing about what gets built.
+  it("notes a superseded filename without failing the part", () => {
+    const f = supersededFilename.run(
+      ctx({ placements: [{ index: 0, partId: "3023.dat", world: at(0, 0, 0) }], isAlias: (p) => p === "3023.dat" }),
+    );
+    expect(f[0]?.severity).toBe("note");
     expect(f[0]?.message).toContain("3023.dat");
   });
 });
