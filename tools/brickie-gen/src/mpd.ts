@@ -32,8 +32,19 @@ export interface RewriteResult {
 /** Looks up a part's opposite-handed counterpart, or undefined if it has none. */
 export type HandResolver = (partId: string) => { handed: boolean; counterpart?: string };
 
-/** Looks up a deprecated alias's replacement, or undefined if the part is current. */
+/** Looks up a superseded filename's replacement, or undefined if the part is current. */
 export type AliasResolver = (partId: string) => string | undefined;
+
+/**
+ * A part reference always carries its extension. The `~Moved to 3023b` header
+ * a replacement comes from does NOT, and substituting it raw emits `3023b`,
+ * which no loader resolves -- the part silently vanishes from the render while
+ * the line count stays the same. Six plates per Legs template disappeared this
+ * way before this existed.
+ */
+function withExtension(partId: string): string {
+  return /\.(dat|ldr|mpd)$/i.test(partId) ? partId : `${partId}.dat`;
+}
 
 const TYPE1 = /^(\s*)1(\s+)(\S+)(\s+)(\S+\s+\S+\s+\S+)(\s+)((?:\S+\s+){8}\S+)(\s+)(\S+)\s*$/;
 
@@ -65,8 +76,9 @@ export function mirrorMpd(text: string, resolveAlias?: AliasResolver, resolveHan
       part: part as string,
     };
     const current = resolveAlias?.(p.part);
-    if (current !== undefined) aliases.set(p.part, current);
-    let emit = current ?? p.part;
+    const currentId = current === undefined ? undefined : withExtension(current);
+    if (currentId !== undefined) aliases.set(p.part, currentId);
+    let emit = currentId ?? p.part;
 
     // Printed first: its print must not be reflected whatever else is true of
     // it, and a printed part is never swapped for a counterpart, because the
@@ -80,8 +92,9 @@ export function mirrorMpd(text: string, resolveAlias?: AliasResolver, resolveHan
       const hand = resolveHand?.(emit);
       if (hand?.handed === true) {
         if (hand.counterpart !== undefined) {
-          swapped.set(emit, hand.counterpart);
-          emit = hand.counterpart;
+          const counterpart = withExtension(hand.counterpart);
+          swapped.set(emit, counterpart);
+          emit = counterpart;
           mode = "substitute";
         } else {
           unresolved.add(emit);

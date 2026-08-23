@@ -9,6 +9,7 @@ import {
   resolveModel,
 } from "ldraw-verify";
 import { readFile } from "node:fs/promises";
+import { resolves } from "./checks/resolves.js";
 import { supersededFilename } from "./checks/supersededFilename.js";
 import { interfaceContract } from "./checks/interfaceContract.js";
 import { orientation } from "./checks/orientation.js";
@@ -23,7 +24,7 @@ import type { Check, CheckContext, CheckReport } from "./types.js";
 const STUD_RADIUS = 6;
 const STUD_RADIUS_TOL = 0.5;
 
-export const ALL_CHECKS: Check[] = [orthogonal, supersededFilename, interfaceContract, symmetry, orientation, size, vocabulary];
+export const ALL_CHECKS: Check[] = [resolves, orthogonal, supersededFilename, interfaceContract, symmetry, orientation, size, vocabulary];
 
 export interface CheckerOptions {
   libraryRoot: string;
@@ -79,6 +80,7 @@ export class BrickieChecker {
       studPlanes,
       antiStudPlanes,
       isAlias: (partId) => this.library.get(partId)?.isAlias === true,
+      unresolved: model.unresolved.map((u) => u.name),
     };
 
     const findings = ALL_CHECKS.flatMap((c) => c.run(ctx));

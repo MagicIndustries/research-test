@@ -4,6 +4,7 @@ import { symmetry } from "../src/checks/symmetry.js";
 import { interfaceContract } from "../src/checks/interfaceContract.js";
 import { supersededFilename } from "../src/checks/supersededFilename.js";
 import { orientation } from "../src/checks/orientation.js";
+import { resolves } from "../src/checks/resolves.js";
 import type { CheckContext } from "../src/types.js";
 
 const IDENT = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -17,6 +18,7 @@ const ctx = (over: Partial<CheckContext>): CheckContext => ({
   studPlanes: new Set(),
   antiStudPlanes: new Set(),
   isAlias: () => false,
+  unresolved: [],
   ...over,
 });
 
@@ -89,5 +91,23 @@ describe("orientation", () => {
     const f = orientation.run(ctx({ category: "Hair", placements: upright }));
     expect(f[0]?.severity).toBe("warn");
     expect(f[0]?.message).toContain("more uprightly");
+  });
+});
+
+describe("resolves", () => {
+  // The check that was missing. A substitution emitted `3023b` instead of
+  // `3023b.dat` -- the replacement id comes from a `~Moved to 3023b` header,
+  // which carries no extension -- and six plates per Legs template silently
+  // vanished from the render while every other check stayed happy. It was
+  // caught by someone looking at the pictures.
+  it("fails a part reference that does not resolve", () => {
+    const f = resolves.run(ctx({ unresolved: ["3023b", "3023b", "29120"] }));
+    expect(f[0]?.severity).toBe("fail");
+    expect(f[0]?.message).toContain("3023b");
+    expect(f[0]?.evidence?.["unresolved"]).toEqual(["3023b", "29120"]);
+  });
+
+  it("passes when everything resolves", () => {
+    expect(resolves.run(ctx({}))).toHaveLength(0);
   });
 });

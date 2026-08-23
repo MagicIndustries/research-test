@@ -31,8 +31,10 @@ export interface CheckContext {
    */
   studPlanes: ReadonlySet<number>;
   antiStudPlanes: ReadonlySet<number>;
-  /** True when the part id resolves to a deprecated `~Moved to` alias. */
+  /** True when the part id resolves to a superseded `~Moved to` filename. */
   isAlias: (partId: string) => boolean;
+  /** Part references the resolver could not find in the library. */
+  unresolved: string[];
 }
 
 export interface Check {
