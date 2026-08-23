@@ -1,5 +1,6 @@
 import { BrickieChecker, type Category, type CheckReport } from "brickie-check";
 import { LibraryIndex, parseDocument, resolveModel, translationOf } from "ldraw-verify";
+import { ChiralityIndex } from "./chirality.js";
 import { readFile } from "node:fs/promises";
 import { mirrorMpd } from "./mpd.js";
 
@@ -9,8 +10,14 @@ export interface Candidate {
   text: string;
   /** Parts whose print would be mirrored too -- see `isPatterned`. */
   patterned: string[];
-  /** Deprecated aliases the generator replaced on the way through. */
+  /** Superseded LDraw filenames rewritten on the way through. */
   aliasesResolved: string[];
+  /** Printed parts moved to the mirrored position with the print left unflipped. */
+  printsPreserved: string[];
+  /** Handed parts swapped for their opposite-handed counterpart. */
+  handSwapped: string[];
+  /** Handed parts with no counterpart -- reflected anyway, and possibly wrong. */
+  handUnresolved: string[];
   /** Share of the source this mirror changes -- see DEFAULT_MIN_CHANGE. */
   changeRatio: number;
   report: CheckReport;
@@ -88,6 +95,8 @@ export interface GenerateOptions {
   category: Category;
   /** Defaults to DEFAULT_MIN_CHANGE. */
   minChange?: number;
+  /** Built once per run; see ChiralityIndex. */
+  chirality: ChiralityIndex;
 }
 
 /**
@@ -108,16 +117,38 @@ export async function generateMirror(
   opts: GenerateOptions,
 ): Promise<Candidate | { rejected: Rejection }> {
   const src = await readFile(path, "utf8");
-  const { text, patterned, aliasesResolved } = mirrorMpd(src, (id) => {
-    const p = opts.library.get(id);
-    return p?.isAlias === true ? p.movedTo : undefined;
-  });
+  const { text, patterned, aliasesResolved, printsPreserved, handSwapped, handUnresolved } = mirrorMpd(
+    src,
+    (id) => {
+      const p = opts.library.get(id);
+      return p?.isAlias === true ? p.movedTo : undefined;
+    },
+    (id) => ({
+      handed: opts.chirality.isHanded(opts.library, id),
+      ...(opts.chirality.counterpart(opts.library, id) !== undefined
+        ? { counterpart: opts.chirality.counterpart(opts.library, id) as string }
+        : {}),
+    }),
+  );
   const ratio = changeRatio(shape(src, path, opts.library), shape(text, path, opts.library));
   if (ratio === 0) return { rejected: "identical" };
   if (ratio < (opts.minChange ?? DEFAULT_MIN_CHANGE)) return { rejected: "trivial" };
   const report = await opts.checker.checkText(text, path, opts.category);
-  return { source: path, operation: "mirror", text, patterned, aliasesResolved, changeRatio: ratio, report };
+  return {
+    source: path,
+    operation: "mirror",
+    text,
+    patterned,
+    aliasesResolved,
+    printsPreserved,
+    handSwapped,
+    handUnresolved,
+    changeRatio: ratio,
+    report,
+  };
 }
+
+export { ChiralityIndex } from "./chirality.js";
 
 export function isCandidate(r: Candidate | { rejected: Rejection }): r is Candidate {
   return !("rejected" in r);

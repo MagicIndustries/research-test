@@ -2,7 +2,7 @@ import { BrickieChecker, CATEGORIES, type Category } from "brickie-check";
 import { LibraryIndex } from "ldraw-verify";
 import { mkdir, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { generateMirror, isCandidate } from "./generate.js";
+import { ChiralityIndex, generateMirror, isCandidate } from "./generate.js";
 
 const ESC = "\u001b[";
 const RESET = `${ESC}0m`;
@@ -38,6 +38,7 @@ if (!category || !CATEGORIES.includes(category) || !out || files.length === 0) u
 const libraryRoot = flag("--library") ?? process.env["LDRAW_DIR"] ?? ".cache/ldraw";
 const shadow = flag("--shadow") ?? process.env["LDCAD_SHADOW_DIR"];
 const library = await LibraryIndex.fromDirectory(libraryRoot);
+const chirality = ChiralityIndex.build(library);
 const checker = await BrickieChecker.create({ libraryRoot, ...(shadow !== undefined ? { shadowDir: shadow } : {}) });
 await mkdir(out, { recursive: true });
 
@@ -45,7 +46,7 @@ let written = 0;
 let duplicates = 0;
 let unclean = 0;
 for (const file of files) {
-  const r = await generateMirror(file, { checker, library, category });
+  const r = await generateMirror(file, { checker, library, category, chirality });
   if (!isCandidate(r)) {
     duplicates++;
     console.log(`${ESC}90mskip${RESET}  ${basename(file)} — ${r.rejected === "identical" ? "mirror reproduces the source" : "mirror changes too little to be a new part"}`);
@@ -62,7 +63,11 @@ for (const file of files) {
   await writeFile(join(out, name), r.text);
   written++;
   const pct = `${(r.changeRatio * 100).toFixed(0)}% changed`;
-  const warn = r.patterned.length > 0 ? ` ${ESC}33m(review: mirrored print on ${r.patterned.join(", ")})${RESET}` : "";
+  const notes: string[] = [];
+  if (r.handSwapped.length > 0) notes.push(`${ESC}32mhand-swapped ${r.handSwapped.length}${RESET}`);
+  if (r.printsPreserved.length > 0) notes.push(`${ESC}90mprints kept upright: ${r.printsPreserved.length}${RESET}`);
+  if (r.handUnresolved.length > 0) notes.push(`${ESC}33mno counterpart: ${r.handUnresolved.join(", ")}${RESET}`);
+  const warn = notes.length > 0 ? `  ${notes.join(" · ")}` : "";
   console.log(`${clean ? `${ESC}32mok${RESET}  ` : `${ESC}33mkept${RESET}`}  ${name}  ${ESC}90m${pct}${RESET}${warn}`);
 }
 

@@ -97,3 +97,60 @@ describe("duplicate rejection", () => {
     expect(norm(out)).not.toBe(norm(asym));
   });
 });
+
+describe("printed parts move but do not flip", () => {
+  // A printed element belongs at the mirrored location, but reflecting its
+  // orientation reflects the print with it, and a mirrored print is not a part
+  // anyone can buy. Position mirrors; orientation is left exactly alone.
+  it("mirrors the position and leaves the orientation untouched", () => {
+    const rotY90 = [0, 0, 1, 0, 1, 0, -1, 0, 0];
+    const p = { colour: 4, x: 30, y: -8, z: 12, m: rotY90, part: "98138pz0.dat" };
+    const r = mirrorPlacement(p, "move-only");
+    expect(r.x).toBe(-30);
+    expect([r.y, r.z]).toEqual([-8, 12]);
+    expect(r.m).toEqual(rotY90);
+  });
+
+  it("routes printed parts through move-only and reports them", () => {
+    const r = mirrorMpd("1 4 30 0 0 0 0 1 0 1 0 -1 0 0 98138pz0.dat");
+    expect(r.printsPreserved).toEqual(["98138pz0.dat"]);
+    // orientation preserved: the trailing nine numbers are unchanged
+    expect(r.text).toContain("0 0 1 0 1 0 -1 0 0");
+    expect(r.text).toContain("-30");
+  });
+
+  it("never substitutes a counterpart for a printed part, whose print would differ", () => {
+    const r = mirrorMpd("1 4 30 0 0 1 0 0 0 1 0 0 0 1 29119pz9.dat", undefined, () => ({
+      handed: true,
+      counterpart: "29120.dat",
+    }));
+    expect(r.handSwapped).toEqual([]);
+    expect(r.text).toContain("29119pz9.dat");
+  });
+});
+
+describe("chirality", () => {
+  // 29119/29120 are Slope Brick Curved 2x1 with Cutout Right/Left -- separate
+  // elements, not one element reflected. Mirroring the matrix alone yields a
+  // shape no part matches: correct silhouette, unbuildable.
+  it("swaps a handed part for its counterpart and mirrors it", () => {
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 29119.dat", undefined, (id) =>
+      id === "29119.dat" ? { handed: true, counterpart: "29120.dat" } : { handed: false },
+    );
+    expect(r.handSwapped).toEqual(["29119.dat -> 29120.dat"]);
+    expect(r.text).toContain("29120.dat");
+    expect(r.text).toContain("-20");
+  });
+
+  it("reports a handed part with no counterpart rather than assuming it is safe", () => {
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 10177b.dat", undefined, () => ({ handed: true }));
+    expect(r.handUnresolved).toEqual(["10177b.dat"]);
+    expect(r.handSwapped).toEqual([]);
+  });
+
+  it("leaves an unhanded part alone", () => {
+    const r = mirrorMpd("1 4 20 0 0 1 0 0 0 1 0 0 0 1 3024.dat", undefined, () => ({ handed: false }));
+    expect(r.handSwapped).toEqual([]);
+    expect(r.handUnresolved).toEqual([]);
+  });
+});

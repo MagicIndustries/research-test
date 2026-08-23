@@ -19,6 +19,20 @@ export interface Placement {
 }
 
 /**
+ * How a placement should be reflected, and why.
+ *
+ * - `reflect` — position and orientation both mirrored. The ordinary case.
+ * - `move-only` — position mirrored, orientation left alone. For a PRINTED
+ *   part: the element belongs at the mirrored location, but reflecting its
+ *   orientation reflects the print with it, and a mirrored print is not a part
+ *   anyone can buy. The print must read the same way it did.
+ * - `substitute` — position and orientation mirrored AND the part swapped for
+ *   its opposite-handed counterpart, which is a different element under a
+ *   different number.
+ */
+export type MirrorMode = "reflect" | "move-only" | "substitute";
+
+/**
  * Reflect a placement through X=0.
  *
  * The position is trivial. The orientation is `M·R·M` with `M = diag(-1,1,1)`,
@@ -32,7 +46,10 @@ export interface Placement {
  * LDraw permits it and `E-01` tests |det| and orthonormality, both of which a
  * reflection satisfies.
  */
-export function mirrorPlacement(p: Placement): Placement {
+export function mirrorPlacement(p: Placement, mode: MirrorMode = "reflect"): Placement {
+  // A printed element moves to the mirrored position and keeps facing the way
+  // it faced. Reflecting the orientation would reflect the print.
+  if (mode === "move-only") return { ...p, x: neg(p.x) };
   const [a, b, c, d, e, f, g, h, i] = p.m as [number, number, number, number, number, number, number, number, number];
   return { ...p, x: neg(p.x), m: [a, neg(b), neg(c), neg(d), e, f, neg(g), h, i] };
 }

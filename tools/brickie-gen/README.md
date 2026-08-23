@@ -10,7 +10,7 @@ brickie-gen mirror --category Hair --out ./new ./Hair/*.mpd
 
 ## What it does today
 
-One operation: **reflection through X=0**.
+One operation: **reflection through X=0**, with two element-specific rules.
 
 That is the operation the measurements support. Brickies are 89–98%
 mirror-symmetric, so the parts worth mirroring are exactly the minority that
@@ -34,18 +34,45 @@ whatever it did not understand.
 | | |
 |---|---|
 | Sources | 199 |
-| Rejected — mirror reproduces the source | **122** |
-| **New parts generated** | **77** |
-| Clean by `brickie-check` | **73 (95%)** |
-| Needing review for a mirrored print | 16 |
+| Rejected — mirror reproduces the source, or changes too little | 109 |
+| **New parts written** | **86** |
+| Failed `brickie-check` | 4 |
 
 | category | new parts |
 |---|---|
-| Hair | 43 |
-| Head | 21 |
-| Body | 9 |
-| Legs | 3 |
-| HeadAccessory | 1 |
+| Hair | 53 |
+| Legs | 28 |
+| Body | 5 |
+| Head | **0** |
+| HeadAccessory | 0 |
+
+## Printed elements move; they do not flip
+
+A printed part belongs at the mirrored location, but reflecting its orientation
+reflects the print, and a mirrored print is not a part anyone can buy. Printed
+placements have their position mirrored and their orientation left exactly as
+it was.
+
+**Head yields zero because of this**, and correctly so. A face is largely
+symmetric and its printed features now stay upright, so reflecting one
+reproduces the same face. Before the rule, 19 mirrored Heads were produced —
+distinct only because their prints had been flipped, which made every one of
+them unbuildable.
+
+## Handed parts are swapped, not just reflected
+
+Some elements exist as a left/right pair under separate part numbers. `29119`
+and `29120` are Slope Brick Curved 2x1 with Cutout Right and Left. Reflecting
+the matrix alone gives a shape no element matches — the right silhouette,
+unbuildable. Ten parts in the current output involve such a swap; before this,
+all ten were wrong.
+
+Counterparts are found by swapping "Left" and "Right" in the LDraw description.
+Over the placeable library, 2,235 parts name a hand and 1,936 (87%) have a
+counterpart findable this way; the rest are mostly minifig limbs with no
+opposite-handed element at all. This is name matching, which `ldraw-verify`
+issue #8 warns about — so it is used only to **find** a substitution, never to
+conclude one is unnecessary. A handed part with no counterpart is reported.
 
 95% against the corpus's own 97% bar — near parity, from the crudest possible
 operation. The yield tracks asymmetry exactly as measured: Hair, the least
@@ -70,12 +97,12 @@ checkable. The heuristic is gone rather than tuned.
 
 ## What it does not do
 
-- **Chirality.** Some parts have distinct left and right versions with their
-  own part numbers. Reflecting one produces a shape that needs the *other*
-  part, and this tool does not substitute it. Nothing detects this yet.
-- **Printed parts.** A mirrored print is not a part anyone can buy. Candidates
-  containing one are written but flagged for review — 16 of the 77 — rather
-  than silently shipped or silently dropped.
+- **Chirality beyond the 87%.** Counterpart matching is name-based. It reports
+  a handed part it cannot resolve rather than guessing, but a part whose
+  description does not name a hand while still being chiral would slip through.
+- **Judging whether a part looks right.** Everything here is legal and in-style
+  by measurement. Whether it is a good hairstyle is not a question this tooling
+  can answer.
 - **Anything but mirroring.** Recombining two parts, resizing within a
   category envelope, generating from a feature description: none of it.
 
