@@ -48,7 +48,7 @@ for (const file of files) {
   const r = await generateMirror(file, { checker, library, category });
   if (!isCandidate(r)) {
     duplicates++;
-    console.log(`${ESC}90mskip${RESET}  ${basename(file)} — mirror reproduces the source`);
+    console.log(`${ESC}90mskip${RESET}  ${basename(file)} — ${r.rejected === "identical" ? "mirror reproduces the source" : "mirror changes too little to be a new part"}`);
     continue;
   }
   const fails = r.report.findings.filter((f) => f.severity === "fail");
@@ -61,8 +61,9 @@ for (const file of files) {
   const name = basename(file).replace(/\.mpd$/i, "") + "_mirrored.mpd";
   await writeFile(join(out, name), r.text);
   written++;
+  const pct = `${(r.changeRatio * 100).toFixed(0)}% changed`;
   const warn = r.patterned.length > 0 ? ` ${ESC}33m(review: mirrored print on ${r.patterned.join(", ")})${RESET}` : "";
-  console.log(`${clean ? `${ESC}32mok${RESET}  ` : `${ESC}33mkept${RESET}`}  ${name}${warn}`);
+  console.log(`${clean ? `${ESC}32mok${RESET}  ` : `${ESC}33mkept${RESET}`}  ${name}  ${ESC}90m${pct}${RESET}${warn}`);
 }
 
 console.log(`\n${written} written, ${duplicates} skipped as duplicates, ${unclean} failed the checker`);

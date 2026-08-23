@@ -1,0 +1,80 @@
+0 FILE short_slicked_back_no_sideburns.io
+0 Untitled Model
+0 Name:  short_slicked_back_no_sideburns
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  27
+1 16 0 -63.9999 -31.8001 1 0 0 0 1 0 0 0 1 skin
+0 STEP
+1 16 0 -64.0001 14.0528 1 0 0 0 1 0 0 0 1 hair
+0 STEP
+0 NOFILE
+0 FILE skin
+0 skin
+0 Name:  skin
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 19 48.0004 -20.0002 41.8001 0 -1 0 1 0 0 0 0 1 3023b
+1 19 -48.0002 -20.0002 41.8001 0 1 0 -1 0 0 0 0 1 3023b
+0 STEP
+1 19 -48.0002 -20.0002 41.8001 0 1 0 1 0 0 0 0 -1 85984.dat
+1 19 48.0004 -20.0002 41.8001 0 -1 0 -1 0 0 0 0 -1 85984.dat
+0 STEP
+1 19 47.9999 -20 11.8001 0 -1 0 1 0 0 0 0 1 3068b.dat
+1 19 -48.0002 -20.0002 11.8001 0 1 0 1 0 0 0 0 -1 3068b.dat
+0 STEP
+1 19 -0.0001 -60.0001 -24.2002 1 0 0 0 0 -1 0 1 0 87079.dat
+1 19 -0.0001 -60.0001 -16.2002 1 0 0 0 0 -1 0 1 0 3020.dat
+0 STEP
+0 NOFILE
+0 FILE hair
+0 hair
+0 Name:  hair
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  19
+1 308 0 -40.0001 33.9474 -1 0 0 0 0 -1 0 -1 0 3020.dat
+0 STEP
+1 308 20 -20.0003 25.9474 -1 0 0 0 0 -1 0 -1 0 15068.dat
+1 308 -20.0001 -20.0003 25.9474 -1 0 0 0 0 -1 0 -1 0 15068.dat
+0 STEP
+1 308 48.0003 -20 15.9474 0 -1 0 -1 0 0 0 0 -1 3069b.dat
+1 308 -48.0002 -20.0001 15.9474 0 1 0 1 0 0 0 0 -1 3069b.dat
+0 STEP
+1 308 0 -50.0001 41.9475 -1 0 0 0 0 -1 0 -1 0 2431.dat
+0 STEP
+1 308 -20.0001 -70.0001 25.9474 1 0 0 0 0 1 0 -1 0 85984.dat
+1 308 20 -70.0001 25.9474 1 0 0 0 0 1 0 -1 0 85984.dat
+0 STEP
+1 308 48.0001 -59.9999 -14.0527 0 -1 0 1 0 0 0 0 1 3022.dat
+1 308 -48.0002 -60.0002 -14.0527 0 1 0 -1 0 0 0 0 1 3022.dat
+0 STEP
+1 308 -40.0002 -60.0002 -34.0527 0 1 0 -1 0 0 0 0 1 15068.dat
+1 308 -40.0002 -60.0003 5.9472 0 1 0 1 0 0 0 0 -1 15068.dat
+0 STEP
+1 308 40.0002 -59.9999 5.9473 0 -1 0 -1 0 0 0 0 -1 15068.dat
+1 308 40.0001 -59.9999 -34.0527 0 -1 0 1 0 0 0 0 1 15068.dat
+0 STEP
+1 16 0 -79.9999 -14.0526 1 0 0 0 1 0 0 0 1 hair_hat
+0 STEP
+0 NOFILE
+0 FILE hair_hat
+0 hair_hat
+0 Name:  hair_hat
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  5
+1 308 0 -8.0002 0 -1 0 0 0 1 0 0 0 -1 3020.dat
+0 STEP
+1 308 -20.0001 -0.0001 20 -1 0 0 0 1 0 0 0 -1 15068.dat
+1 308 20.0001 -0.0001 20 -1 0 0 0 1 0 0 0 -1 15068.dat
+0 STEP
+1 308 -20.0001 -0.0003 -20 1 0 0 0 1 0 0 0 1 15068.dat
+1 308 20.0001 0 -20 1 0 0 0 1 0 0 0 1 15068.dat
+0 STEP
+0 NOFILE

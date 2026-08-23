@@ -1,0 +1,96 @@
+0 FILE head_long_beard_moustache_round_glasses_a.io
+0 Untitled Model
+0 Name:  head_long_beard_moustache_round_glasses_a
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  33
+1 16 0 -64 0 1 0 0 0 1 0 0 0 1 head_long_beard_moustache_round_glasses_a_head_core
+0 STEP
+1 16 0.0001 -64 -56 1 0 0 0 1 0 0 0 1 head_long_beard_moustache_round_glasses_a_skin
+0 STEP
+1 16 -9.999 -24 -50.1429 1 0 0 0 1 0 0 0 1 head_long_beard_moustache_round_glasses_a_facial_hair
+0 STEP
+1 16 -10 -84.0001 -64 1 0 0 0 1 0 0 0 1 head_long_beard_moustache_round_glasses_a_eyes
+0 STEP
+1 0 0 -94.0001 -72 1 0 0 0 0 -1 0 1 0 35365.dat
+0 STEP
+0 NOFILE
+0 FILE head_long_beard_moustache_round_glasses_a_head_core
+0 head_long_beard_moustache_round_glasses_a_head_core
+0 Name:  head_long_beard_moustache_round_glasses_a_head_core
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  16
+1 71 0 -8 0 -1 0 0 0 1 0 0 0 -1 3022.dat
+1 71 0 -32.0001 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+1 71 30.0002 -40.0001 20 0 0 -1 0 1 0 1 0 0 22885.dat
+1 71 30 -40.0001 -20 0 0 -1 0 1 0 1 0 0 22885.dat
+1 71 0 -40.0001 -30 1 0 0 0 1 0 0 0 1 22885.dat
+0 STEP
+1 71 -30.0001 -40.0001 -20 0 0 1 0 1 0 -1 0 0 22885.dat
+1 71 -30 -40.0001 20 0 0 1 0 1 0 -1 0 0 22885.dat
+1 71 0 -40.0001 30 -1 0 0 0 1 0 0 0 -1 22885.dat
+0 STEP
+1 71 0 -56.0001 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+1 71 0 -80.0002 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+1 71 20 -80 -30 1 0 0 0 1 0 0 0 1 22885.dat
+1 71 20 -80.0001 30 -1 0 0 0 1 0 0 0 -1 22885.dat
+1 71 30 -80.0001 0 0 0 -1 0 1 0 1 0 0 22885.dat
+0 STEP
+1 71 -20 -80.0001 -30 1 0 0 0 1 0 0 0 1 22885.dat
+1 71 -20 -80.0001 30 -1 0 0 0 1 0 0 0 -1 22885.dat
+1 71 -30 -80.0002 0 0 0 1 0 1 0 -1 0 0 22885.dat
+0 STEP
+0 NOFILE
+0 FILE head_long_beard_moustache_round_glasses_a_skin
+0 head_long_beard_moustache_round_glasses_a_skin
+0 Name:  head_long_beard_moustache_round_glasses_a_skin
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 19 -0.0002 -30.0001 8 -1 0 0 0 0 1 0 1 0 3710.dat
+0 STEP
+1 19 -0.0002 -30.0001 0 -1 0 0 0 0 1 0 1 0 3794b.dat
+1 19 29.9998 -30.0001 0 -1 0 0 0 0 1 0 1 0 3024.dat
+1 19 -30.0002 -30.0001 0 -1 0 0 0 0 1 0 1 0 3024.dat
+0 STEP
+1 19 -0.0002 -30.0001 -8 -1 0 0 0 0 1 0 1 0 3024.dat
+0 STEP
+1 19 0.0008 -10 8 -1 0 0 0 0 1 0 1 0 3710.dat
+0 STEP
+1 19 0.0008 0 0 1 0 0 0 0 -1 0 1 0 3020.dat
+0 STEP
+0 NOFILE
+0 FILE head_long_beard_moustache_round_glasses_a_facial_hair
+0 head_long_beard_moustache_round_glasses_a_facial_hair
+0 Name:  head_long_beard_moustache_round_glasses_a_facial_hair
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 6 40 -50 -13.8571 -1 0 0 0 0 1 0 1 0 25269.dat
+1 6 0 -50 -13.8571 0 0 -1 -1 0 0 0 1 0 25269.dat
+1 6 20 -50 -13.8572 1 0 0 0 0 -1 0 1 0 25269.dat
+1 6 -20 -50 -13.8571 0 0 1 1 0 0 0 1 0 25269.dat
+0 STEP
+1 6 10 -20 2.1429 1 0 0 0 0 -1 0 1 0 15068.dat
+0 STEP
+1 6 -20 -20 2.1429 1 0 0 0 0 -1 0 1 0 29120.dat
+1 6 40 -20 2.1429 1 0 0 0 0 -1 0 1 0 29119.dat
+0 STEP
+0 NOFILE
+0 FILE head_long_beard_moustache_round_glasses_a_eyes
+0 head_long_beard_moustache_round_glasses_a_eyes
+0 Name:  head_long_beard_moustache_round_glasses_a_eyes
+0 Author: 
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 0 40 -10 0 1 0 0 0 0 -1 0 1 0 98138pz0.dat
+1 0 -20 -10 0 1 0 0 0 0 -1 0 1 0 98138pz0.dat
+0 NOFILE

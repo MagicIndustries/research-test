@@ -15,12 +15,26 @@ export interface RewriteResult {
   text: string;
   placements: number;
   patterned: string[];
+  /** Deprecated aliases replaced with their current part, as `from -> to`. */
+  aliasesResolved: string[];
 }
+
+/** Looks up a deprecated alias's replacement, or undefined if the part is current. */
+export type AliasResolver = (partId: string) => string | undefined;
 
 const TYPE1 = /^(\s*)1(\s+)(\S+)(\s+)(\S+\s+\S+\s+\S+)(\s+)((?:\S+\s+){8}\S+)(\s+)(\S+)\s*$/;
 
-export function mirrorMpd(text: string): RewriteResult {
+/**
+ * `resolveAlias` is optional but wanted. The corpus references five deprecated
+ * `~Moved to` aliases across 220 placements, and a newly generated part has no
+ * business inheriting one: the alias resolves today and stops resolving when
+ * the LDraw library drops it. Carrying it forward would also mean every
+ * generated part fails `brickie-check`'s `deprecated` check for a defect it
+ * did not introduce.
+ */
+export function mirrorMpd(text: string, resolveAlias?: AliasResolver): RewriteResult {
   const patterned = new Set<string>();
+  const aliases = new Map<string, string>();
   let placements = 0;
   const out = text.split("\n").map((line) => {
     const m = TYPE1.exec(line);
@@ -35,10 +49,18 @@ export function mirrorMpd(text: string): RewriteResult {
       part: part as string,
     };
     if (isPatterned(p.part)) patterned.add(p.part);
+    const current = resolveAlias?.(p.part);
+    if (current !== undefined) aliases.set(p.part, current);
+    const emit = current ?? p.part;
     const r = mirrorPlacement(p);
     placements++;
     const fmt = (v: number) => (Object.is(v, -0) ? "0" : String(+v.toFixed(4)));
-    return `${lead}1${s1}${colour}${s2}${fmt(r.x)} ${fmt(r.y)} ${fmt(r.z)}${s3}${r.m.map(fmt).join(" ")}${s4}${part}`;
+    return `${lead}1${s1}${colour}${s2}${fmt(r.x)} ${fmt(r.y)} ${fmt(r.z)}${s3}${r.m.map(fmt).join(" ")}${s4}${emit}`;
   });
-  return { text: out.join("\n"), placements, patterned: [...patterned] };
+  return {
+    text: out.join("\n"),
+    placements,
+    patterned: [...patterned],
+    aliasesResolved: [...aliases].map(([from, to]) => `${from} -> ${to}`),
+  };
 }

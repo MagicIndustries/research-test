@@ -1,0 +1,235 @@
+0 FILE torso_checkered.io
+0 Untitled Model
+0 Name:  torso_checkered
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  71
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 torso_checkered_core_a
+0 STEP
+1 16 -12.4287 0 0.0001 1 0 0 0 1 0 0 0 1 torso_checkered_colour_1_a
+0 STEP
+1 16 1.7141 -8 -9.9999 1 0 0 0 1 0 0 0 1 torso_checkered_colour_2_a
+0 STEP
+1 16 -10.0001 -16 0 1 0 0 0 1 0 0 0 1 torso_checkered_core_b
+0 STEP
+1 16 -10.0002 -16 -10 1 0 0 0 1 0 0 0 1 torso_checkered_colour_1_b
+0 STEP
+1 16 9.9998 -24 -10 1 0 0 0 1 0 0 0 1 torso_checkered_colour_2_b
+0 STEP
+1 16 9.9998 -32 -10 1 0 0 0 1 0 0 0 1 torso_checkered_colour_1_c
+0 STEP
+1 16 9.9998 -40 -10 1 0 0 0 1 0 0 0 1 torso_checkered_colour_2_c
+0 STEP
+1 16 7.5712 -48 -1.7143 1 0 0 0 1 0 0 0 1 torso_checkered_colour_1_d
+0 STEP
+1 16 7.5713 -16 2.4286 1 0 0 0 1 0 0 0 1 torso_checkered_colour_2_d
+0 STEP
+1 16 16 -36 10 1 0 0 0 1 0 0 0 1 torso_checkered_colour_1_e
+0 STEP
+1 16 15.9999 -1.9701 -19.9999 1 0 0 0 1 0 0 0 1 torso_checkered_skin
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_core_a
+0 torso_checkered_core_a
+0 Name:  torso_checkered_core_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  4
+1 71 0 -8 0 -1 0 0 0 1 0 0 0 -1 4032a.dat
+0 STEP
+1 71 0 -32 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+1 71 0 -56 0 -1 0 0 0 1 0 0 0 -1 3941.dat
+0 STEP
+1 71 0 -64 0 1 0 0 0 1 0 0 0 1 3022.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_1_a
+0 torso_checkered_colour_1_a
+0 Name:  torso_checkered_colour_1_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 1 42.4287 -8 -0.0001 0 0 1 0 1 0 -1 0 0 3023b.dat
+1 1 -17.5713 -8 0.0002 0 0 1 0 1 0 -1 0 0 3023b.dat
+0 STEP
+1 1 12.4284 -8 -29.9998 -1 0 0 0 1 0 0 0 -1 3710.dat
+1 1 12.4286 -8 29.9997 -1 0 0 0 1 0 0 0 -1 3710.dat
+0 STEP
+1 1 -17.5715 -16 0.0002 0 0 1 0 1 0 -1 0 0 3710.dat
+1 1 22.4286 -16 29.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 22.4284 -16 -29.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_2_a
+0 torso_checkered_colour_2_a
+0 Name:  torso_checkered_colour_2_a
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 226 28.2856 -8 10.0002 0 0 1 0 1 0 -1 0 0 3710.dat
+0 STEP
+1 226 -11.7142 -8 39.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -31.7142 -16 39.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 8.2858 -16 39.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -31.7144 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -11.7144 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 8.2856 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_core_b
+0 torso_checkered_core_b
+0 Name:  torso_checkered_core_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 71 40.0001 -40 -0.0003 0 0 -1 0 1 0 1 0 0 22885.dat
+1 71 -20.0002 -40 0.0003 0 0 1 0 1 0 -1 0 0 22885.dat
+0 NOFILE
+0 FILE torso_checkered_colour_1_b
+0 torso_checkered_colour_1_b
+0 Name:  torso_checkered_colour_1_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 1 40.0001 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 0.0001 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 20.0001 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -19.9999 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 39.9999 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -0.0001 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 19.9999 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -20.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_2_b
+0 torso_checkered_colour_2_b
+0 Name:  torso_checkered_colour_2_b
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 226 -19.9999 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 20.0001 -8 39.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 0.0001 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -39.9999 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -20.0001 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 19.9999 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -0.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -40.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_1_c
+0 torso_checkered_colour_1_c
+0 Name:  torso_checkered_colour_1_c
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 1 -19.9999 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 20.0001 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 0.0001 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -39.9999 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 -20.0001 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 19.9999 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 -0.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 -40.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_2_c
+0 torso_checkered_colour_2_c
+0 Name:  torso_checkered_colour_2_c
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  8
+1 226 -19.9999 -8 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 20.0001 -8 39.9997 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 0.0001 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -39.9999 -16 39.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -20.0001 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 19.9999 -8 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -0.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 226 -40.0001 -16 -19.9998 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_1_d
+0 torso_checkered_colour_1_d
+0 Name:  torso_checkered_colour_1_d
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 1 -17.5713 -8 31.7141 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 22.4287 -8 31.7141 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 -37.5713 -16 31.7141 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 2.4287 -16 31.7141 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 -17.5715 -8 -28.2854 -1 0 0 0 1 0 0 0 -1 3024.dat
+1 1 22.4285 -8 -28.2854 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 1 -37.5716 -16 -28.2854 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_2_d
+0 torso_checkered_colour_2_d
+0 Name:  torso_checkered_colour_2_d
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  7
+1 226 -37.5716 -48 -2.4284 0 0 1 0 1 0 -1 0 0 3023b.dat
+0 STEP
+1 226 22.4284 -48 -2.4284 0 0 1 0 1 0 -1 0 0 3710.dat
+1 226 -17.5714 -48 27.5712 -1 0 0 0 1 0 0 0 -1 3024.dat
+0 STEP
+1 226 -55.5714 -20 -2.4284 0 1 0 1 0 0 0 0 -1 3022.dat
+1 226 40.4287 -20 -2.4289 0 -1 0 1 0 0 0 0 1 3022.dat
+0 STEP
+1 226 -63.5714 -30 -12.4284 0 1 0 1 0 0 0 0 -1 3070b.dat
+1 226 48.4287 -30 -12.4289 0 -1 0 -1 0 0 0 0 -1 3070b.dat
+0 STEP
+0 NOFILE
+0 FILE torso_checkered_colour_1_e
+0 torso_checkered_colour_1_e
+0 Name:  torso_checkered_colour_1_e
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  2
+1 1 -72.0001 -10 0.0003 0 1 0 1 0 0 0 0 -1 3070b.dat
+1 1 40.0001 -10 -0.0003 0 -1 0 -1 0 0 0 0 -1 3070b.dat
+0 NOFILE
+0 FILE torso_checkered_skin
+0 torso_checkered_skin
+0 Name:  torso_checkered_skin
+0 Author:  
+0 CustomBrick
+0 FlexibleBrickControlPointUnitLength -1
+0 NumOfBricks:  3
+1 19 -72.0001 -24.0299 20.0002 0 1 0 0 0 -1 -1 0 0 11476.dat
+1 19 40.0003 -24.0299 19.9997 0 -1 0 0 0 -1 1 0 0 11476.dat
+0 STEP
+1 19 -16.0002 -62.0299 -9.9998 -1 0 0 0 1 0 0 0 -1 3023b.dat
+0 STEP
+0 NOFILE
